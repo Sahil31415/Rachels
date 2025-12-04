@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Record</title>
+
+  <style>
+    :root{
+      --accent:#2563eb;
+      --accent-2:#1e40af;
+      --muted:#6b7280;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --danger:#d9534f;
+      --success:#059669;
+      --radius:12px;
+      --gap:14px;
+      --shadow-sm: 0 8px 30px rgba(16,24,40,0.06);
+      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
+      --max-width:1100px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#fbfdff 0%, var(--bg) 100%);
+      color:#0f1724;
+      -webkit-font-smoothing:antialiased;
+      padding:28px 18px;
+    }
+
+    .container{max-width:var(--max-width); margin:0 auto}
+    header.appbar{
+      display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px;
+    }
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:44px; height:44px; border-radius:10px; display:grid; place-items:center; color:white;
+           font-weight:700; font-size:18px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow-sm)}
+    .title-hdr{font-size:18px; font-weight:700; margin:0}
+    .subtitle-hdr{color:var(--muted); font-size:13px}
+
+    nav.actions{display:flex; gap:10px; align-items:center}
+    a.btn{
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+      padding:10px 14px; border-radius:10px; font-weight:700; font-size:14px;
+      background:var(--card); color:var(--accent-2); border:1px solid rgba(37,99,235,0.08)
+    }
+    a.btn.primary{ background: linear-gradient(180deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:0 8px 30px rgba(37,99,235,0.12); border:none }
+
+    /* Card */
+    .card{
+      background:var(--card); border-radius:var(--radius); padding:26px; box-shadow:var(--shadow-lg);
+      border: 1px solid rgba(12,18,33,0.04);
+    }
+
+    .page-title{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
+    h2{ margin:0; color:var(--accent-2); font-size:22px }
+    p.lead{ margin:4px 0 20px 0; color:var(--muted) }
+
+    /* messages */
+    .messages{ margin-bottom:16px; display:flex; flex-direction:column; gap:10px }
+    .msg{ padding:12px 14px; border-radius:10px; font-weight:600; font-size:14px }
+    .msg.success{ background: rgba(5,150,105,0.08); color:var(--success); border:1px solid rgba(5,150,105,0.12) }
+    .msg.error{ background: rgba(217,83,79,0.06); color:var(--danger); border:1px solid rgba(217,83,79,0.10) }
+
+    /* form layout */
+    form { margin-top:6px; }
+    .form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:18px; }
+    .form-col{ min-width:0; }
+    label{ display:block; margin-bottom:8px; font-weight:700; color:#0b294a; font-size:14px; }
+
+    /* Inputs */
+    input[type="text"], input[type="date"], textarea, select{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid #e6eef8;
+      background: #fbfdff;
+      font-size:15px;
+      color: #06233a;
+      outline:none;
+      transition:box-shadow .12s, border-color .12s;
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      appearance:none;
+    }
+    select{ background-image: linear-gradient(45deg, transparent 50%, #334155 50%), linear-gradient(135deg, #334155 50%, transparent 50%); background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px); background-size: 6px 6px, 6px 6px; background-repeat:no-repeat, no-repeat; padding-right:36px; }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent-2); box-shadow: 0 8px 30px rgba(37,99,235,0.10); }
+
+    textarea{ min-height:160px; resize:vertical }
+
+    /* error text */
+    .field-errors{ color:var(--danger); margin-top:6px; font-size:13px; font-weight:600 }
+
+    /* form actions */
+    .form-actions{ display:flex; gap:10px; align-items:center; margin-top:18px }
+    button.btn-submit{
+      padding:12px 18px; border-radius:10px; border:none; background:var(--accent-2); color:#fff; font-weight:800; cursor:pointer;
+      box-shadow:0 10px 32px rgba(30,64,175,0.12)
+    }
+    a.btn-ghost{ padding:10px 14px; border-radius:10px; background:transparent; color:var(--accent-2); border:1px solid rgba(30,64,175,0.08); font-weight:700 }
+
+    /* hint */
+    .hint{ color:var(--muted); font-size:13px; margin-top:8px }
+
+    /* helper row */
+    .helper-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px }
+
+    /* popup */
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 20%;
+      transform: translateX(-50%) translateY(-10px);
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 8px 30px rgba(16,24,40,0.12);
+      border: 1px solid rgba(8,24,48,0.06);
+      display: flex;
+      gap: 12px;
+      align-items:center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    .toast .ok {
+      width:36px; height:36px; border-radius:8px; display:grid; place-items:center; background:linear-gradient(180deg,#10b981,#059669); color:white; font-weight:800;
+    }
+
+    /* responsive */
+    @media (max-width:880px){ .form-grid{ grid-template-columns: 1fr } .actions-sm{ display:flex; gap:10px } }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- header -->
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <div class="title-hdr">Record Manager</div>
+          <div class="subtitle-hdr">Add a new order entry</div>
+        </div>
+      </div>
+
+      <nav class="actions">
+        <a href="{% url 'show_all_records' %}" class="btn">All Records</a>
+        <a href="{% url 'Home' %}" class="btn primary">Dashboard</a>
+      </nav>
+    </header>
+
+    <main class="card" role="main" aria-labelledby="add-heading">
+      <div class="page-title">
+        <div>
+          <h2 id="add-heading">Add New Record</h2>
+          <p class="lead">Fill in the details for the new entry. Fields marked required must be completed.</p>
+        </div>
+
+        <div class="helper-row">
+          <div class="hint">Tip: press <strong>Enter</strong> to submit after filling details.</div>
+        </div>
+      </div>
+
+      <!-- django messages -->
+      <div class="messages">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- form -->
+      <form id="recordForm" method="POST" novalidate action="{% url 'add_record' %}">
+        {% csrf_token %}
+
+        <div class="form-grid">
+          <div class="form-col">
+            <label for="id_date">Date <span style="color:var(--muted); font-weight:600; font-size:13px">(required)</span></label>
+            {{ form.date }}
+            {% if form.date.errors %}
+              <div class="field-errors">{{ form.date.errors|striptags }}</div>
+            {% endif %}
+            <div class="hint" aria-hidden="true">Use the calendar to select the order date</div>
+          </div>
+
+          <div class="form-col">
+            <label for="id_location">Location <span style="color:var(--muted); font-weight:600; font-size:13px">(required)</span></label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="field-errors">{{ form.location.errors|striptags }}</div>
+            {% endif %}
+            <div class="hint">Choose the outlet where this order belongs</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:6px">
+          <label for="id_details">Details</label>
+          {{ form.details }}
+          {% if form.details.errors %}
+            <div class="field-errors">{{ form.details.errors|striptags }}</div>
+          {% endif %}
+          <div class="hint">Add any notes, items or instructions (min 10 characters recommended)</div>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="field-errors">{{ form.non_field_errors|striptags }}</div>
+        {% endif %}
+
+        <div class="form-actions">
+          <button id="submitBtn" type="submit" class="btn-submit">Save Record</button>
+          <a href="{% url 'Home' %}" class="btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <!-- success toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+    <div class="ok">✓</div>
+    <div>
+      <div style="font-weight:800">Saved</div>
+      <div class="muted" style="font-size:13px">Record was added successfully. Redirecting...</div>
+    </div>
+  </div>
+
+  <script>
+    // Helper: get cookie (for CSRF)
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    (function () {
+      const form = document.getElementById('recordForm');
+      const btn = document.getElementById('submitBtn');
+      const toast = document.getElementById('toast');
+      const homeUrl = "{% url 'Home' %}";
+
+      // Auto focus the date field (if present)
+      const dateField = document.getElementById('id_date');
+      if (dateField) {
+        if (!dateField.value) {
+          const today = new Date().toISOString().slice(0,10);
+          dateField.value = today;
+        }
+        dateField.focus();
+      }
+
+      // Intercept submit and post via fetch so we can show popup then redirect
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // minimal validation: ensure date and location not empty
+        const location = document.getElementById('id_location');
+        if (!dateField.value || (location && !location.value)) {
+          alert('Please fill required fields: Date and Location.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        // Prepare form data
+        const formData = new FormData(form);
+
+        // Fetch POST (include credentials so session cookie sent)
+        fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin',
+          headers: {
+            // Accept HTML so server can respond with rendered form or redirect target HTML
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          },
+          redirect: 'follow'
+        }).then(async (response) => {
+          // Successful status range => either redirected to home (on success), or server re-rendered form (on validation errors)
+          // If server performed a redirect to another URL (response.url differs) treat as success.
+          const redirected = response.redirected;
+          const finalUrl = response.url;
+
+          if (response.ok && (redirected || finalUrl === window.location.origin + homeUrl || finalUrl.endsWith(homeUrl) || finalUrl === window.location.href)) {
+            // Show success toast and redirect to home after a short delay
+            toast.classList.add('show');
+
+            setTimeout(() => {
+              // Ensure redirect to home
+              window.location.href = homeUrl;
+            }, 1100);
+            return;
+          }
+
+          // If server returned OK but did not redirect, it probably re-rendered the form with errors.
+          // Replace document with server HTML so user sees validation errors.
+          const text = await response.text();
+          document.open();
+          document.write(text);
+          document.close();
+        }).catch((err) => {
+          console.error('Submit error', err);
+          alert('An error occurred while saving. Please try again.');
+          btn.disabled = false;
+          btn.innerText = 'Save Record';
+        });
+      });
+
+      // restore button if user navigates back (some browsers keep disabled state)
+      window.addEventListener('pageshow', function () {
+        btn.disabled = false;
+        btn.innerText = 'Save Record';
+      });
+    })();
+  </script>
+</body>
+</html>

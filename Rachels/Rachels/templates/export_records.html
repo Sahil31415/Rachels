@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Export Records</title>
+  <style>
+    :root{
+      --accent:#2563eb;
+      --accent-2:#1e40af;
+      --muted:#6b7280;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --danger:#d9534f;
+      --radius:12px;
+      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
+      --max-width:980px;
+    }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:linear-gradient(180deg,#fbfdff 0%,var(--bg) 100%); color:#0f1724; padding:28px 18px; -webkit-font-smoothing:antialiased;}
+    .container{max-width:var(--max-width); margin:0 auto}
+    header.appbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{width:44px; height:44px; border-radius:10px; display:grid; place-items:center; color:white; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 8px 30px rgba(16,24,40,0.06);}
+    .title-hdr{font-weight:700}
+    .subtitle-hdr{color:var(--muted); font-size:13px}
+    a.btn{ padding:10px 14px; border-radius:10px; background:var(--card); color:var(--accent-2); text-decoration:none; border:1px solid rgba(37,99,235,0.08); font-weight:700 }
+    a.btn.primary{ background:linear-gradient(180deg,var(--accent),var(--accent-2)); color:white; border:none }
+
+    main.card{ background:var(--card); padding:22px; border-radius:var(--radius); box-shadow:var(--shadow-lg); border:1px solid rgba(12,18,33,0.04); }
+    h2{ margin:0 0 6px 0; color:var(--accent-2) }
+    .muted{ color:var(--muted) }
+
+    form.export-form{ display:grid; gap:12px; max-width:700px; margin-top:14px; }
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap }
+    label{ font-weight:700; color:#0b294a; margin-bottom:6px; display:block }
+    input[type="date"], select{
+      padding:10px 12px; border-radius:10px; border:1px solid #e6eef8; background:#fbfdff; font-size:14px; outline:none;
+    }
+    .controls{ display:flex; gap:10px; align-items:center; margin-top:8px }
+    button.primary{ padding:10px 14px; border-radius:10px; border:none; color:white; background:linear-gradient(180deg,var(--accent),var(--accent-2)); font-weight:800; cursor:pointer }
+    a.ghost{ padding:10px 14px; border-radius:10px; border:1px solid rgba(12,18,33,0.06); background:transparent; color:var(--accent-2); text-decoration:none; font-weight:700 }
+
+    .hint{ color:var(--muted); font-size:13px; }
+    .errors{ color:var(--danger); font-weight:700; }
+
+    @media (max-width:700px){
+      .row{ flex-direction:column; align-items:stretch }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <div class="title-hdr">Record Manager</div>
+          <div class="subtitle-hdr">Export orders to Excel</div>
+        </div>
+      </div>
+
+      <nav class="actions">
+        <a href="{% url 'show_all_records' %}" class="btn">All Records</a>
+        <a href="{% url 'add_record' %}" class="btn primary">Add Record</a>
+      </nav>
+    </header>
+
+    <main class="card" role="main" aria-labelledby="export-heading">
+      <h2 id="export-heading">Export Orders</h2>
+      <div class="muted">Select a date range (From — To). Optionally filter by location or status before exporting.</div>
+
+      {% if messages %}
+        <div style="margin-top:12px">
+          {% for message in messages %}
+            <div class="errors">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form class="export-form" method="get" action="{% url 'export_csv' %}">
+        <div class="row">
+          <div style="flex:1; min-width:180px">
+            <label for="from_date">From date</label>
+            <input id="from_date" name="from_date" type="date" value="{{ initial.from_date }}">
+          </div>
+
+          <div style="flex:1; min-width:180px">
+            <label for="to_date">To date</label>
+            <input id="to_date" name="to_date" type="date" value="{{ initial.to_date }}">
+          </div>
+
+          <div style="flex:1; min-width:180px">
+            <label for="location">Location</label>
+            <select id="location" name="location">
+              <option value="">All locations</option>
+              <option value="Dulari" {% if initial.location == "Dulari" %}selected{% endif %}>Dulari</option>
+              <option value="Pours and Plates" {% if initial.location == "Pours and Plates" %}selected{% endif %}>Pours and Plates</option>
+              <option value="Rachels" {% if initial.location == "Rachels" %}selected{% endif %}>Rachels</option>
+            </select>
+          </div>
+
+          <div style="flex:1; min-width:170px">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="">Any</option>
+              <option value="Pending" {% if initial.status == "Pending" %}selected{% endif %}>Pending</option>
+              <option value="Completed" {% if initial.status == "Completed" %}selected{% endif %}>Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button type="submit" class="primary">Download CSV</button>
+          <a class="ghost" href="{% url 'export_form' %}">Reset</a>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
+</html>

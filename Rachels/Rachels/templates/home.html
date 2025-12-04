@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Home — Records</title>
+  <style>
+    /* --- Design tokens --- */
+    :root{
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --muted: #7b8794;
+      --accent: #2563eb;           /* blue */
+      --accent-600: #1e40af;
+      --success: #059669;
+      --danger: #b45309;
+      --glass: rgba(255,255,255,0.6);
+      --radius: 12px;
+      --shadow-sm: 0 6px 18px rgba(16,24,40,0.06);
+      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
+      --max-width: 1200px;
+      --text: #0f172a;
+    }
+
+    /* --- Reset & base --- */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.4;
+      padding:28px 18px;
+    }
+
+    /* --- Container & header --- */
+    .container{max-width:var(--max-width); margin:0 auto;}
+    header.appbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:22px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .logo{
+      width:44px; height:44px;
+      border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-600));
+      display:inline-grid; place-items:center;
+      color:white; font-weight:700; font-size:18px;
+      box-shadow:var(--shadow-sm);
+    }
+    .brand h1{font-size:18px; margin:0; letter-spacing:-0.2px}
+    .nav-actions{display:flex; gap:10px; align-items:center}
+
+    a.btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 14px; border-radius:10px;
+      background:var(--card); color:var(--accent-600);
+      border:1px solid rgba(37,99,235,0.08); text-decoration:none;
+      font-weight:600; font-size:14px;
+      box-shadow:none;
+    }
+    a.primary{
+      background:linear-gradient(180deg,var(--accent),var(--accent-600));
+      color:white; border:none;
+      box-shadow:0 8px 30px rgba(37,99,235,0.14);
+    }
+
+    /* --- Grid layout --- */
+    .top-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-bottom:20px;}
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow-sm);
+      border:1px solid rgba(12,18,33,0.03);
+    }
+
+    .stat-title{color:var(--muted); font-size:13px; margin-bottom:6px}
+    .stat-number{font-size:28px; font-weight:700; color:var(--accent-600)}
+
+    /* pending by location table */
+    table.clean{width:100%; border-collapse:collapse; font-size:14px}
+    table.clean th{ text-align:left; padding:10px 12px; font-weight:700; color:var(--accent-600); background:linear-gradient(180deg,#fbfdff,#ffffff); border-radius:6px}
+    table.clean td{padding:10px 12px; color:#111827; border-bottom:1px solid #f1f5f9; font-size:14px}
+
+    /* --- Top 5 area --- */
+    .emphasis{
+      margin:18px 0; padding:16px; border-radius:14px; box-shadow:var(--shadow-lg); background:linear-gradient(180deg, rgba(255,255,255,0.9), var(--card));
+    }
+    .emphasis h3{margin:0 0 6px 0; font-size:16px}
+    .muted{color:var(--muted); font-size:13px}
+    .table-compact{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
+    .table-compact th, .table-compact td { text-align:left; padding:12px 14px }
+    .table-compact thead th{ color:var(--accent-600); font-weight:700; font-size:13px; border-bottom:1px solid #eef2f6 }
+    .table-compact tbody tr:hover{ background: #fbfdff }
+
+    /* badges */
+    .badge{
+      display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:6px 10px; font-weight:700; font-size:13px;
+    }
+    .badge.pending{ background: rgba(180,83,9,0.08); color:var(--danger) }
+    .badge.success{ background: rgba(5,150,105,0.08); color:var(--success) }
+
+    /* --- Location cards --- */
+    .locations-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-bottom:20px}
+    .loc-card{display:flex; flex-direction:column; gap:12px; padding:18px}
+    .loc-header{display:flex; justify-content:space-between; align-items:center}
+    .loc-title{font-weight:700; font-size:15px}
+    .loc-meta{color:var(--muted); font-size:13px}
+
+    .sublist{
+      background:linear-gradient(180deg,#fbfdff,#ffffff); padding:10px; border-radius:10px; max-height:200px; overflow:auto;
+      border:1px solid rgba(12,18,33,0.03)
+    }
+    .item{display:flex; gap:12px; align-items:flex-start; padding:8px 6px; border-bottom:1px solid #f3f6fa}
+    .item:last-child{border-bottom:none}
+    .item .item-body{flex:1}
+    .item .item-actions{text-align:right; min-width:86px}
+
+    .item .title{font-weight:600; font-size:14px}
+    .item .meta{color:var(--muted); font-size:13px; margin-top:6px}
+
+    /* --- Utility --- */
+    .row{display:flex; gap:12px; align-items:center}
+    .muted-small{color:var(--muted); font-size:13px}
+    .ghost{background:transparent; border:1px dashed rgba(12,18,33,0.05); padding:10px; border-radius:10px; color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:1000px){ .top-grid, .locations-grid { grid-template-columns: 1fr } .brand h1{font-size:16px} }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- header -->
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <h1>Rachels Management</h1>
+          <div class="muted-small">Orders dashboard</div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <a href="{% url 'show_all_records' %}" class="btn">View all</a>
+        <a href="{% url 'add_record' %}" class="btn primary">Add record</a>
+      </div>
+    </header>
+
+    <!-- top stats -->
+    <section class="top-grid">
+      <div class="card">
+        <div class="stat-title">Total pending</div>
+        <div class="stat-number">{{ total_pending }}</div>
+        <div class="muted" style="margin-top:10px">Pending across all locations</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+          <div class="stat-title">Pending by location</div>
+          <div class="muted-small">Sorted</div>
+        </div>
+
+        <table class="clean" aria-hidden="false">
+          <thead>
+            <tr><th>Location</th><th>Count</th></tr>
+          </thead>
+          <tbody>
+            {% if pending_by_location %}
+              {% for row in pending_by_location %}
+                <tr>
+                  <td>{{ row.location|default:"(No location)" }}</td>
+                  <td>{{ row.count }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="2" class="muted">No pending orders</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="stat-title">Latest records</div>
+        <div style="margin-top:8px">
+          {% if latest_records %}
+            <div style="display:flex; flex-direction:column; gap:8px">
+              {% for r in latest_records %}
+                <div class="row" style="justify-content:space-between; align-items:center">
+                  <div>
+                    <div style="font-weight:600">{{ r.location }}</div>
+                    <div class="muted-small">{{ r.date }}</div>
+                  </div>
+                  <div><a href="{% url 'record_detail' r.pk %}" class="ghost">View</a></div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="muted">No records yet</div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- top 5 orders -->
+    <section class="emphasis">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h3>Top 5 Orders</h3>
+          <div class="muted">Latest pending orders (or latest records if status isn't used)</div>
+        </div>
+        <div class="muted-small">Quick glance</div>
+      </div>
+
+      <table class="table-compact" role="table" aria-label="Top 5 orders">
+        <thead>
+          <tr>
+            <th>Location & details</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th style="width:80px">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if top5_orders %}
+            {% for rec in top5_orders %}
+              <tr>
+                <td>
+                  <div style="font-weight:700">{{ rec.location }}</div>
+                  <div class="muted-small" title="{{ rec.details }}">{{ rec.details|truncatechars:80 }}</div>
+                </td>
+                <td class="muted-small">{{ rec.date }}</td>
+                <td>
+                  {% if rec.status|lower == "pending" %}
+                    <span class="badge pending">Pending</span>
+                  {% elif rec.status|lower == "completed" %}
+                    <span class="badge success">Completed</span>
+                  {% else %}
+                    <span class="badge" style="background:rgba(15,23,42,0.04); color:#334155">{{ rec.status }}</span>
+                  {% endif %}
+                </td>
+                <td><a href="{% url 'record_detail' rec.pk %}" class="btn">View</a></td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="muted">No orders to show</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- location cards -->
+    <section class="locations-grid">
+      {% for card in location_cards %}
+        <article class="card loc-card">
+          <div class="loc-header">
+            <div>
+              <div class="loc-title">{{ card.location }}</div>
+              <div class="loc-meta">Pending: {{ card.pending_count }} · Successful: {{ card.successful_count }}</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center">
+              <a href="{% url 'show_all_records' %}?location={{ card.location }}" class="btn">Filter</a>
+            </div>
+          </div>
+
+          <div>
+            <div class="muted-small" style="margin-bottom:8px; font-weight:700">Pending</div>
+            <div class="sublist">
+              {% if card.pending %}
+                {% for r in card.pending %}
+                  <div class="item">
+                    <div class="item-body">
+                      <div class="title">{{ r.details|truncatechars:70 }}</div>
+                      <div class="meta">{{ r.date }}</div>
+                    </div>
+                    <div class="item-actions">
+                      <div style="margin-bottom:6px">
+                        <span class="badge pending">{{ r.status }}</span>
+                      </div>
+                      <div><a href="{% url 'record_detail' r.pk %}" class="muted-small">View</a></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="muted">No pending records</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div>
+            <div class="muted-small" style="margin:10px 0 8px 0; font-weight:700">Successful / Other</div>
+            <div class="sublist">
+              {% if card.successful %}
+                {% for r in card.successful %}
+                  <div class="item">
+                    <div class="item-body">
+                      <div class="title">{{ r.details|truncatechars:70 }}</div>
+                      <div class="meta">{{ r.date }}</div>
+                    </div>
+                    <div class="item-actions">
+                      <div style="margin-bottom:6px">
+                        <span class="badge success">{{ r.status }}</span>
+                      </div>
+                      <div><a href="{% url 'record_detail' r.pk %}" class="muted-small">View</a></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="muted">No successful/other records</div>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+
+  </div>
+</body>
+</html>
