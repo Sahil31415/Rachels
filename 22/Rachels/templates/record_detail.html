@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Record Details</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#f6f8fb; color:#222; padding:20px; }
+    .card { background:#fff; max-width:800px; margin:24px auto; padding:20px; border-radius:10px; box-shadow:0 6px 20px rgba(8,24,48,0.06); }
+    h1 { color:#0b66d0; margin:0 0 12px 0; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th, td { text-align:left; padding:12px 14px; border-bottom:1px solid #eef2f6; vertical-align:top; }
+    th { width:180px; color:#0b66d0; background:#fbfdff; font-weight:600; }
+    .btn { display:inline-block; padding:8px 12px; background:#0b66d0; color:#fff; text-decoration:none; border-radius:8px; margin-right:8px; }
+    .danger { background:#d9534f; }
+    .muted { color:#666; font-size:0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Record details</h1>
+
+    <table>
+      <tbody>
+        <tr>
+          <th>ID</th>
+          <td>{{ record.id }}</td>
+        </tr>
+
+        <tr>
+          <th>Date</th>
+          <td>{{ record.date }}</td>
+        </tr>
+
+        <tr>
+          <th>Location</th>
+          <td>{{ record.location }}</td>
+        </tr>
+
+        <tr>
+          <th>Status</th>
+          <td>{{ record.status }}</td>
+        </tr>
+
+        <tr>
+          <th>Details</th>
+          <td style="white-space:pre-wrap">{{ record.details }}</td>
+        </tr>
+
+        {# if you have other fields like created_at, show them #}
+        {% if record.created_at %}
+        <tr>
+          <th>Created at</th>
+          <td>{{ record.created_at }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <p style="margin-top:16px;">
+
+    <a class="btn" href="{% url 'show_all_records' %}">Back to list</a>
+
+    {% if record.status != "Completed" %}
+        <form method="POST" action="{% url 'mark_completed' record.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn" style="background:#28a745;" type="submit">
+                Mark as Completed
+            </button>
+        </form>
+    {% else %}
+        <button class="btn" style="background:#9ca3af; cursor:not-allowed; opacity:0.6;" disabled>
+            Completed
+        </button>
+    {% endif %}
+
+    <a class="btn danger" href="{% url 'delete_record' record.pk %}">Delete</a>
+
+</p>
+
+  </div>
+</body>
+</html>

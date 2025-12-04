@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Record</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background:#fafafa; padding:30px; }
+        .card { background:white; padding:25px; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.06); max-width:500px; margin:auto; }
+        .btn { display:inline-block; padding:10px 16px; border-radius:6px; text-decoration:none; color:white; background:#004aad; }
+        .danger { background:#d9534f; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Delete Record?</h2>
+
+        <p>Are you sure you want to delete this record?</p>
+
+        <p><strong>{{ record.location }}</strong></p>
+        <p>{{ record.date }}</p>
+        <p>{{ record.details }}</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button class="danger" type="submit">Yes, Delete</button>
+            <a href="{% url 'show_all_records' %}" class="btn">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
