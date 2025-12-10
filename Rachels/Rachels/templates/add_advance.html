@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Add Advance{% endblock %}
+
+{% block head %}
+<style>
+  /* --- Form Page Specific Styles --- */
+  
+  .form-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: var(--page);
+    padding: 48px; /* Increased padding for elegance */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(90, 64, 50, 0.08); 
+  }
+
+  .form-header {
+    margin-bottom: 32px;
+    text-align: center;
+  }
+  
+  .form-header h2 {
+    margin: 0 0 8px 0;
+    color: var(--accent-600);
+    font-size: 26px; /* Matched to List View Header */
+    font-weight: 800;
+  }
+  
+  .form-header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* Form Field Styling */
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+  }
+
+  /* Target standard Django widget outputs */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="email"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px; /* Smoother corners */
+    border: 1px solid rgba(90, 64, 50, 0.15);
+    background: #fff;
+    font-size: 15px;
+    color: var(--text);
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+    /* Added subtle inner shadow for depth matching Login page */
+    box-shadow: 0 2px 5px rgba(90, 64, 50, 0.03); 
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
+    transform: translateY(-1px);
+  }
+
+  /* Error Message Styling */
+  .error-msg {
+    color: #a63a2e;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* Buttons Row */
+  .form-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(90, 64, 50, 0.1);
+  }
+
+  /* Ensure buttons fill the space nicely */
+  .form-actions .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px;
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<main class="form-container">
+  
+  <div class="form-header">
+    <h2>Record Advance Payment</h2>
+    <p>Enter the employee details and advance amount below.</p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div style="background:rgba(181,90,72,0.1); padding:12px; border-radius:8px; margin-bottom:20px; color:#a63a2e; border:1px solid rgba(181,90,72,0.2);">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="form-group">
+      <label for="{{ form.employee_name.id_for_label }}">Employee Name</label>
+      {{ form.employee_name }}
+      {% if form.employee_name.errors %}
+        <div class="error-msg">⚠ {{ form.employee_name.errors|striptags }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.paid_on.id_for_label }}">Date Paid</label>
+      {{ form.paid_on }}
+      {% if form.paid_on.errors %}
+        <div class="error-msg">⚠ {{ form.paid_on.errors|striptags }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.amount.id_for_label }}">Amount</label>
+      {{ form.amount }}
+      {% if form.amount.errors %}
+        <div class="error-msg">⚠ {{ form.amount.errors|striptags }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-actions">
+      <button class="btn primary" type="submit">Save Advance</button>
+      <a class="btn ghost" href="{% url 'advance_list' %}">Cancel</a>
+    </div>
+
+  </form>
+</main>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Confirm delete{% endblock %}
+{% block content %}
+<main style="max-width:680px;margin:0 auto;background:var(--card);padding:22px;border-radius:12px;box-shadow:var(--shadow-sm)">
+  <h3>Delete advance</h3>
+  <p>Delete advance for <strong>{{ advance.employee_name }}</strong> (₹{{ advance.amount }} on {{ advance.paid_on }})?</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn" type="submit" style="background:#ef4444;color:#fff">Yes, delete</button>
+    <a class="btn" href="{% url 'advance_list' %}">Cancel</a>
+  </form>
+</main>
+{% endblock %}

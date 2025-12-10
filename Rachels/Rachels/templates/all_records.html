@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}All Records{% endblock %}
+{% block content %}
+<main class="page-card" style="padding:20px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+    <div>
+      <h2 style="margin:0 0 6px 0">All Records</h2>
+      <div class="muted" style="font-size:13px">Browse, filter and manage orders</div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <a href="{% url 'export_form' %}" class="btn">Export</a>
+      <a href="{% url 'Home' %}" class="btn">Dashboard</a>
+      <a href="{% url 'add_record' %}" class="btn primary">Add Record</a>
+    </div>
+  </div>
+
+  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <input type="search" name="q" placeholder="Search details..." value="{{ request.GET.q|default:'' }}" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff;min-width:180px" />
+
+    <select name="location" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
+      <option value="">All Locations</option>
+      <option value="Dulari" {% if request.GET.location == "Dulari" %}selected{% endif %}>Dulari</option>
+      <option value="Pours and Plates" {% if request.GET.location == "Pours and Plates" %}selected{% endif %}>Pours and Plates</option>
+      <option value="Rachels" {% if request.GET.location == "Rachels" %}selected{% endif %}>Rachels</option>
+    </select>
+
+    <select name="status" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
+      <option value="">Any Status</option>
+      <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
+      <option value="Completed" {% if request.GET.status == "Completed" %}selected{% endif %}>Completed</option>
+    </select>
+
+    <button type="submit" class="btn" style="background:linear-gradient(180deg,var(--accent),var(--accent-600));color:#fff;border:none;padding:10px 14px;border-radius:10px;font-weight:800">Apply</button>
+    <a href="{% url 'show_all_records' %}" class="btn" style="background:transparent;border:1px solid rgba(11,11,11,0.06);color:var(--muted)">Reset</a>
+  </form>
+
+  <div style="overflow:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:12px;color:var(--accent-600)">Date</th>
+          <th style="text-align:left;padding:12px;color:var(--accent-600)">Location</th>
+          <th style="text-align:left;padding:12px;color:var(--accent-600)">Status</th>
+          <th style="text-align:left;padding:12px;color:var(--accent-600)">Details</th>
+          <th style="padding:12px"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in records %}
+          <tr style="border-top:1px solid rgba(11,11,11,0.03)">
+            <td style="padding:12px;vertical-align:top">{{ r.date }}</td>
+            <td style="padding:12px;vertical-align:top">{{ r.location }}</td>
+            <td style="padding:12px;vertical-align:top">
+              {% if r.status|lower == "pending" %}
+                <span style="padding:6px 10px;border-radius:999px;background:rgba(181,90,72,0.08);color:#7a2b20;font-weight:700">Pending</span>
+              {% elif r.status|lower == "completed" %}
+                <span style="padding:6px 10px;border-radius:999px;background:rgba(39,110,74,0.06);color:var(--accent);font-weight:700">Completed</span>
+              {% else %}
+                <span style="padding:6px 10px;border-radius:999px;background:rgba(11,11,11,0.04);color:#334155;font-weight:700">{{ r.status }}</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px;vertical-align:top">{{ r.vendor.name }} → {{ r.item.item_name }} × {{ r.quantity }}</td>
+            <td style="padding:12px;vertical-align:top">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <a class="btn" href="{% url 'record_detail' r.pk %}">View</a>
+
+                {% if is_admin %}
+                  <form method="post" action="{% url 'mark_completed' r.pk %}" style="display:inline">{% csrf_token %}
+                    <button class="btn" type="submit">Mark Completed</button>
+                  </form>
+
+                  <form method="post" action="{% url 'delete_record' r.pk %}" style="display:inline" onsubmit="return confirm('Delete?')">{% csrf_token %}
+                    <button class="btn" style="background:#b54747;color:#fff;border:none">Delete</button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">No records found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj %}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      {% if page_obj.has_previous %}
+        <a class="btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Prev</a>
+      {% endif %}
+
+      {% for item in pagination_items %}
+        {% if item == '...' %}
+          <span style="padding:8px 10px;color:var(--muted)">…</span>
+        {% else %}
+          {% if item == page_obj.number %}
+            <span style="padding:8px 10px;background:var(--accent-600);color:#fff;border-radius:8px">{{ item }}</span>
+          {% else %}
+            <a class="btn" href="?page={{ item }}">{{ item }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a class="btn" href="?page={{ page_obj.next_page_number }}">Next</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

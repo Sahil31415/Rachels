@@ -1,330 +1,223 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Home — Records</title>
-  <style>
-    /* --- Design tokens --- */
-    :root{
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --muted: #7b8794;
-      --accent: #2563eb;           /* blue */
-      --accent-600: #1e40af;
-      --success: #059669;
-      --danger: #b45309;
-      --glass: rgba(255,255,255,0.6);
-      --radius: 12px;
-      --shadow-sm: 0 6px 18px rgba(16,24,40,0.06);
-      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
-      --max-width: 1200px;
-      --text: #0f172a;
-    }
+{% extends "base.html" %}
 
-    /* --- Reset & base --- */
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      line-height:1.4;
-      padding:28px 18px;
-    }
+{% block title %}Home — Records{% endblock %}
 
-    /* --- Container & header --- */
-    .container{max-width:var(--max-width); margin:0 auto;}
-    header.appbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:22px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
-    .logo{
-      width:44px; height:44px;
-      border-radius:10px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-600));
-      display:inline-grid; place-items:center;
-      color:white; font-weight:700; font-size:18px;
-      box-shadow:var(--shadow-sm);
-    }
-    .brand h1{font-size:18px; margin:0; letter-spacing:-0.2px}
-    .nav-actions{display:flex; gap:10px; align-items:center}
+{% block head %}
+<style>
+  /* --- Dashboard Specific Layouts --- */
+  
+  /* Responsive Grid for Top Row and Location Cards */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    width: 100%;
+  }
 
-    a.btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 14px; border-radius:10px;
-      background:var(--card); color:var(--accent-600);
-      border:1px solid rgba(37,99,235,0.08); text-decoration:none;
-      font-weight:600; font-size:14px;
-      box-shadow:none;
-    }
-    a.primary{
-      background:linear-gradient(180deg,var(--accent),var(--accent-600));
-      color:white; border:none;
-      box-shadow:0 8px 30px rgba(37,99,235,0.14);
-    }
+  /* Typography Enhancements */
+  .stat-label { font-size: 13px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-number { font-size: 48px; font-weight: 800; color: var(--accent-600); line-height: 1; margin: 12px 0; letter-spacing: -0.02em; }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .card-title { font-weight: 800; font-size: 18px; color: var(--text); }
 
-    /* --- Grid layout --- */
-    .top-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-bottom:20px;}
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:16px;
-      box-shadow:var(--shadow-sm);
-      border:1px solid rgba(12,18,33,0.03);
-    }
+  /* Clean Tables */
+  .table-clean { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .table-clean th { 
+    text-align: left; padding: 12px 16px; 
+    color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
+  }
+  .table-clean td { padding: 16px; border-bottom: 1px solid rgba(90, 64, 50, 0.06); vertical-align: top; }
+  .table-clean tr:last-child td { border-bottom: none; }
 
-    .stat-title{color:var(--muted); font-size:13px; margin-bottom:6px}
-    .stat-number{font-size:28px; font-weight:700; color:var(--accent-600)}
+  /* Interactive List Items */
+  .list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid rgba(90, 64, 50, 0.06);
+  }
+  .list-item:last-child { border-bottom: none; }
 
-    /* pending by location table */
-    table.clean{width:100%; border-collapse:collapse; font-size:14px}
-    table.clean th{ text-align:left; padding:10px 12px; font-weight:700; color:var(--accent-600); background:linear-gradient(180deg,#fbfdff,#ffffff); border-radius:6px}
-    table.clean td{padding:10px 12px; color:#111827; border-bottom:1px solid #f1f5f9; font-size:14px}
+  /* Status Badges - Themed */
+  .badge {
+    display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; 
+    font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+  }
+  /* Warm Earthy Orange for Pending */
+  .badge.pending { background: rgba(160, 82, 45, 0.1); color: #A0522D; }
+  /* Deep Earthy Green for Success */
+  .badge.success { background: rgba(60, 90, 60, 0.1); color: #3C5A3C; }
 
-    /* --- Top 5 area --- */
-    .emphasis{
-      margin:18px 0; padding:16px; border-radius:14px; box-shadow:var(--shadow-lg); background:linear-gradient(180deg, rgba(255,255,255,0.9), var(--card));
-    }
-    .emphasis h3{margin:0 0 6px 0; font-size:16px}
-    .muted{color:var(--muted); font-size:13px}
-    .table-compact{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
-    .table-compact th, .table-compact td { text-align:left; padding:12px 14px }
-    .table-compact thead th{ color:var(--accent-600); font-weight:700; font-size:13px; border-bottom:1px solid #eef2f6 }
-    .table-compact tbody tr:hover{ background: #fbfdff }
+  /* Inner Card Scrolls - Custom Scrollbar to match theme */
+  .scroll-area {
+    background: var(--bg); /* Use the main page beige for contrast inside the card */
+    padding: 16px;
+    border-radius: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid rgba(90, 64, 50, 0.05);
+  }
+  
+  /* Webkit Scrollbar Styling */
+  .scroll-area::-webkit-scrollbar { width: 6px; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb { background-color: rgba(90, 64, 50, 0.15); border-radius: 10px; }
+  .scroll-area::-webkit-scrollbar-thumb:hover { background-color: rgba(90, 64, 50, 0.3); }
 
-    /* badges */
-    .badge{
-      display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:6px 10px; font-weight:700; font-size:13px;
-    }
-    .badge.pending{ background: rgba(180,83,9,0.08); color:var(--danger) }
-    .badge.success{ background: rgba(5,150,105,0.08); color:var(--success) }
+</style>
+{% endblock %}
 
-    /* --- Location cards --- */
-    .locations-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-bottom:20px}
-    .loc-card{display:flex; flex-direction:column; gap:12px; padding:18px}
-    .loc-header{display:flex; justify-content:space-between; align-items:center}
-    .loc-title{font-weight:700; font-size:15px}
-    .loc-meta{color:var(--muted); font-size:13px}
+{% block content %}
 
-    .sublist{
-      background:linear-gradient(180deg,#fbfdff,#ffffff); padding:10px; border-radius:10px; max-height:200px; overflow:auto;
-      border:1px solid rgba(12,18,33,0.03)
-    }
-    .item{display:flex; gap:12px; align-items:flex-start; padding:8px 6px; border-bottom:1px solid #f3f6fa}
-    .item:last-child{border-bottom:none}
-    .item .item-body{flex:1}
-    .item .item-actions{text-align:right; min-width:86px}
+<div class="dashboard-grid" style="margin-bottom: 30px;">
+  
+  <div class="page-card" style="display:flex; flex-direction:column; justify-content:center;">
+    <div class="stat-label">Total pending</div>
+    <div class="stat-number">{{ total_pending }}</div>
+    <div class="muted" style="font-size:13px;">Across all locations</div>
+  </div>
 
-    .item .title{font-weight:600; font-size:14px}
-    .item .meta{color:var(--muted); font-size:13px; margin-top:6px}
-
-    /* --- Utility --- */
-    .row{display:flex; gap:12px; align-items:center}
-    .muted-small{color:var(--muted); font-size:13px}
-    .ghost{background:transparent; border:1px dashed rgba(12,18,33,0.05); padding:10px; border-radius:10px; color:var(--muted)}
-
-    /* responsive */
-    @media (max-width:1000px){ .top-grid, .locations-grid { grid-template-columns: 1fr } .brand h1{font-size:16px} }
-  </style>
-</head>
-<body>
-  <div class="container">
-
-    <!-- header -->
-    <header class="appbar">
-      <div class="brand">
-        <div class="logo">R</div>
-        <div>
-          <h1>Rachels Management</h1>
-          <div class="muted-small">Orders dashboard</div>
-        </div>
-      </div>
-
-      <div class="nav-actions">
-        <a href="{% url 'show_all_records' %}" class="btn">View all</a>
-        <a href="{% url 'add_record' %}" class="btn primary">Add record</a>
-      </div>
-    </header>
-
-    <!-- top stats -->
-    <section class="top-grid">
-      <div class="card">
-        <div class="stat-title">Total pending</div>
-        <div class="stat-number">{{ total_pending }}</div>
-        <div class="muted" style="margin-top:10px">Pending across all locations</div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-          <div class="stat-title">Pending by location</div>
-          <div class="muted-small">Sorted</div>
-        </div>
-
-        <table class="clean" aria-hidden="false">
-          <thead>
-            <tr><th>Location</th><th>Count</th></tr>
-          </thead>
-          <tbody>
-            {% if pending_by_location %}
-              {% for row in pending_by_location %}
-                <tr>
-                  <td>{{ row.location|default:"(No location)" }}</td>
-                  <td>{{ row.count }}</td>
-                </tr>
-              {% endfor %}
-            {% else %}
-              <tr><td colspan="2" class="muted">No pending orders</td></tr>
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <div class="stat-title">Latest records</div>
-        <div style="margin-top:8px">
-          {% if latest_records %}
-            <div style="display:flex; flex-direction:column; gap:8px">
-              {% for r in latest_records %}
-                <div class="row" style="justify-content:space-between; align-items:center">
-                  <div>
-                    <div style="font-weight:600">{{ r.location }}</div>
-                    <div class="muted-small">{{ r.date }}</div>
-                  </div>
-                  <div><a href="{% url 'record_detail' r.pk %}" class="ghost">View</a></div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="muted">No records yet</div>
-          {% endif %}
-        </div>
-      </div>
-    </section>
-
-    <!-- top 5 orders -->
-    <section class="emphasis">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h3>Top 5 Orders</h3>
-          <div class="muted">Latest pending orders (or latest records if status isn't used)</div>
-        </div>
-        <div class="muted-small">Quick glance</div>
-      </div>
-
-      <table class="table-compact" role="table" aria-label="Top 5 orders">
-        <thead>
+  <div class="page-card">
+    <div class="card-header">
+      <div class="stat-label">Pending by location</div>
+    </div>
+    <table style="width:100%; font-size:14px;">
+      {% if pending_by_location %}
+        {% for r in pending_by_location %}
           <tr>
-            <th>Location & details</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th style="width:80px">Action</th>
+            <td style="padding: 8px 0; color:var(--text); border-bottom:1px solid rgba(90,64,50,0.05);">{{ r.location }}</td>
+            <td style="padding: 8px 0; font-weight:700; text-align:right; border-bottom:1px solid rgba(90,64,50,0.05);">{{ r.count }}</td>
           </tr>
-        </thead>
-        <tbody>
-          {% if top5_orders %}
-            {% for rec in top5_orders %}
-              <tr>
-                <td>
-                  <div style="font-weight:700">{{ rec.location }}</div>
-                  <div class="muted-small" title="{{ rec.details }}">{{ rec.details|truncatechars:80 }}</div>
-                </td>
-                <td class="muted-small">{{ rec.date }}</td>
-                <td>
-                  {% if rec.status|lower == "pending" %}
-                    <span class="badge pending">Pending</span>
-                  {% elif rec.status|lower == "completed" %}
-                    <span class="badge success">Completed</span>
-                  {% else %}
-                    <span class="badge" style="background:rgba(15,23,42,0.04); color:#334155">{{ rec.status }}</span>
-                  {% endif %}
-                </td>
-                <td><a href="{% url 'record_detail' rec.pk %}" class="btn">View</a></td>
-              </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="2" class="muted" style="padding:10px 0;">No pending items</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <div class="page-card">
+    <div class="card-header">
+      <div class="stat-label">Latest Activity</div>
+    </div>
+    <div style="display:flex; flex-direction:column;">
+      {% for r in latest_records %}
+        <div class="list-item">
+          <div>
+            <div style="font-weight:600; font-size:14px;">{{ r.location }}</div>
+            <div class="muted" style="font-size:12px;">{{ r.date }}</div>
+          </div>
+          <a class="btn" href="{% url 'record_detail' r.pk %}" style="font-size:12px; padding: 6px 12px;">View</a>
+        </div>
+      {% empty %}
+        <div class="muted">No records yet</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<section class="page-card" style="margin-bottom: 30px;">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Top 5 Orders</h3>
+      <div class="muted" style="font-size:13px; margin-top:4px;">Latest pending requisitions</div>
+    </div>
+    <a href="{% url 'show_all_records' %}" class="btn ghost" style="font-size:13px;">View All</a>
+  </div>
+
+  <div style="overflow-x: auto;"> <table class="table-clean">
+      <thead>
+        <tr>
+          <th>Location &amp; Item</th>
+          <th>Vendor</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in top5_orders %}
+        <tr>
+          <td>
+            <strong style="display:block; color:var(--text);">{{ rec.location }}</strong>
+            <div class="muted" style="font-size:13px; margin-top:4px;">{{ rec.item.item_name }} <span style="opacity:0.6">× {{ rec.quantity }}</span></div>
+          </td>
+          <td style="font-size:14px;">{{ rec.vendor.name }}</td>
+          <td style="font-size:14px; color:var(--muted);">{{ rec.date }}</td>
+          <td>
+            {% if rec.status|lower == "pending" %}
+              <span class="badge pending">Pending</span>
+            {% else %}
+              <span class="badge success">Completed</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;">
+            <a class="btn" href="{% url 'record_detail' rec.pk %}" style="padding:6px 12px;">Details</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  {% for card in location_cards %}
+    <article class="page-card" style="display:flex; flex-direction:column; gap:20px;">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div style="font-weight:800; font-size:18px;">{{ card.location }}</div>
+          <div class="muted" style="font-size:12px; margin-top:4px;">
+            <span style="color:#A0522D; font-weight:600;">{{ card.pending_count }} Pending</span> &bull; {{ card.successful_count }} Done
+          </div>
+        </div>
+        <a class="btn" href="{% url 'show_all_records' %}?location={{ card.location }}" style="padding:6px 10px;">Filter</a>
+      </div>
+
+      <div>
+        <div class="stat-label" style="margin-bottom:8px; font-size:11px;">Pending Items</div>
+        <div class="scroll-area">
+          {% if card.pending %}
+            {% for r in card.pending %}
+              <div style="display:flex; justify-content:space-between; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid rgba(0,0,0,0.03);">
+                <div>
+                  <div style="font-weight:600; font-size:13px; color:var(--text);">{{ r.vendor.name }}</div>
+                  <div class="muted" style="font-size:12px;">{{ r.item.item_name }} × {{ r.quantity }}</div>
+                </div>
+                <div style="text-align:right; flex-shrink:0;">
+                  <span class="badge pending" style="font-size:10px;">{{ r.status }}</span>
+                  <div style="margin-top:4px;">
+                    <a class="muted" style="font-size:11px; text-decoration:underline;" href="{% url 'record_detail' r.pk %}">View</a>
+                  </div>
+                </div>
+              </div>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="muted">No orders to show</td></tr>
+            <div class="muted" style="font-size:13px; text-align:center; padding:10px;">No pending records</div>
           {% endif %}
-        </tbody>
-      </table>
-    </section>
+        </div>
+      </div>
 
-    <!-- location cards -->
-    <section class="locations-grid">
-      {% for card in location_cards %}
-        <article class="card loc-card">
-          <div class="loc-header">
-            <div>
-              <div class="loc-title">{{ card.location }}</div>
-              <div class="loc-meta">Pending: {{ card.pending_count }} · Successful: {{ card.successful_count }}</div>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center">
-              <a href="{% url 'show_all_records' %}?location={{ card.location }}" class="btn">Filter</a>
-            </div>
-          </div>
+      <div>
+        <div class="stat-label" style="margin-bottom:8px; font-size:11px;">Recent History</div>
+        <div class="scroll-area" style="background:transparent; border:none; padding-left:0; padding-right:0;">
+          {% if card.successful %}
+            {% for r in card.successful %}
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div style="font-size:13px; color:var(--muted);">
+                  {{ r.vendor.name }} &rarr; {{ r.item.item_name }}
+                </div>
+                <a class="muted" style="font-size:11px;" href="{% url 'record_detail' r.pk %}">View</a>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="muted" style="font-size:13px;">No history available</div>
+          {% endif %}
+        </div>
+      </div>
 
-          <div>
-            <div class="muted-small" style="margin-bottom:8px; font-weight:700">Pending</div>
-            <div class="sublist">
-              {% if card.pending %}
-                {% for r in card.pending %}
-                  <div class="item">
-                    <div class="item-body">
-                      <div class="title">{{ r.details|truncatechars:70 }}</div>
-                      <div class="meta">{{ r.date }}</div>
-                    </div>
-                    <div class="item-actions">
-                      <div style="margin-bottom:6px">
-                        <span class="badge pending">{{ r.status }}</span>
-                      </div>
-                      <div><a href="{% url 'record_detail' r.pk %}" class="muted-small">View</a></div>
-                    </div>
-                  </div>
-                {% endfor %}
-              {% else %}
-                <div class="muted">No pending records</div>
-              {% endif %}
-            </div>
-          </div>
+    </article>
+  {% endfor %}
+</section>
 
-          <div>
-            <div class="muted-small" style="margin:10px 0 8px 0; font-weight:700">Successful / Other</div>
-            <div class="sublist">
-              {% if card.successful %}
-                {% for r in card.successful %}
-                  <div class="item">
-                    <div class="item-body">
-                      <div class="title">{{ r.details|truncatechars:70 }}</div>
-                      <div class="meta">{{ r.date }}</div>
-                    </div>
-                    <div class="item-actions">
-                      <div style="margin-bottom:6px">
-                        <span class="badge success">{{ r.status }}</span>
-                      </div>
-                      <div><a href="{% url 'record_detail' r.pk %}" class="muted-small">View</a></div>
-                    </div>
-                  </div>
-                {% endfor %}
-              {% else %}
-                <div class="muted">No successful/other records</div>
-              {% endif %}
-            </div>
-          </div>
-        </article>
-      {% endfor %}
-    </section>
-
-  </div>
-</body>
-</html>
+{% endblock %}

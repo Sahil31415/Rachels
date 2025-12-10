@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in — Rachels Management</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* The Consistent Beige/Brown Palette */
+      --bg: #F0EAE3;
+      --card: #fbf7f3;
+      --text: #24201C;
+      --muted: #857F72;
+      --accent: #5A4032;      /* Rich Brown */
+      --accent-600: #1C1A17;  /* Charcoal */
+      --radius: 16px;
+      
+      /* Warm Shadows */
+      --shadow-card: 0 20px 40px rgba(90, 64, 50, 0.12);
+      --shadow-input: 0 2px 5px rgba(90, 64, 50, 0.03);
+    }
+
+    body{
+      margin:0;
+      padding:20px;
+      font-family:Inter, system-ui, -apple-system, sans-serif;
+      /* Radial focus background */
+      background: radial-gradient(circle at center, #F8F4F0 0%, var(--bg) 100%);
+      color:var(--text);
+      display:flex;
+      flex-direction: column;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+    }
+
+    /* Logo Styling */
+    .brand-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-600));
+      color: #fff;
+      font-size: 24px;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 20px rgba(90, 64, 50, 0.2);
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    /* Login Card */
+    .card{
+      width:100%;
+      max-width:400px;
+      background:var(--card);
+      padding:40px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow-card);
+      /* Subtle border opacity */
+      border:1px solid rgba(255,255,255,0.8);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    h2 {
+      margin:0 0 8px 0;
+      font-size:26px;
+      font-weight:800;
+      color:var(--accent-600);
+      text-align: center;
+    }
+    
+    .subtitle {
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:32px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* Form Elements */
+    label {
+      display:block;
+      margin-bottom:8px;
+      font-weight:600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+
+    input {
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid rgba(90, 64, 50, 0.15);
+      background:#fff;
+      margin-bottom:20px;
+      font-size:15px;
+      color: var(--text);
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-input);
+    }
+
+    input:focus {
+      outline:none;
+      border-color:var(--accent);
+      box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* Button Styling */
+    .btn {
+      width: 100%;
+      padding:14px;
+      border-radius:12px;
+      background:linear-gradient(180deg, var(--accent), var(--accent-600));
+      color:#fff;
+      font-size: 15px;
+      text-decoration:none;
+      font-weight:700;
+      border:none;
+      cursor:pointer;
+      box-shadow: 0 4px 15px rgba(90, 64, 50, 0.2);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(90, 64, 50, 0.25);
+      filter: brightness(1.1);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    /* Error Box */
+    .error {
+      background: rgba(181,90,72,0.06);
+      padding:12px;
+      border-radius:10px;
+      color:#a63a2e;
+      margin-bottom:24px;
+      font-size: 14px;
+      font-weight:600;
+      border:1px solid rgba(181,90,72,0.15);
+      text-align: center;
+    }
+
+    /* Help Link */
+    .help-wrapper {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    a.help-link {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+    a.help-link:hover {
+      text-decoration: underline;
+      color: var(--accent-600);
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="brand-logo">R</div>
+
+  <div class="card">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Please enter your details to access the dashboard.</p>
+
+    {% if form.errors %}
+      <div class="error">Incorrect username or password.</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+
+      <label for="id_username">Username</label>
+      <input id="id_username" name="username" type="text" placeholder="e.g. admin" required autofocus />
+
+      <label for="id_password">Password</label>
+      <input id="id_password" name="password" type="password" placeholder="••••••••" required />
+
+      <button class="btn" type="submit">Sign In</button>
+
+      <div class="help-wrapper">
+        Having trouble? <a href="#" class="help-link">Contact Support</a>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Advance Salaries{% endblock %}
+
+{% block head %}
+<style>
+  /* --- Advance List Specific Styles --- */
+
+  /* Page Header */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
+  }
+  
+  .header-content h2 { margin: 0 0 6px 0; color: var(--accent-600); font-size: 26px; font-weight: 800; }
+  .header-content p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* Stat Grid (Matches Dashboard) */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    background: var(--page);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .stat-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .stat-value {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* Table Card (Matches All Records) */
+  .table-card {
+    background: var(--page);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    border: 1px solid rgba(90, 64, 50, 0.05);
+  }
+
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .styled-table thead th {
+    background: rgba(90, 64, 50, 0.04);
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 18px 24px;
+    text-align: left;
+    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid rgba(90, 64, 50, 0.06);
+    transition: background 0.15s;
+  }
+  .styled-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  
+  .styled-table td {
+    padding: 18px 24px;
+    vertical-align: middle;
+    color: var(--text);
+  }
+
+  /* Delete Button (Subtle Ghost Danger) */
+  .btn-delete {
+    background: transparent;
+    color: #a63a2e; /* Burnt Red */
+    border: 1px solid rgba(166, 58, 46, 0.15);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-delete:hover {
+    background: #a63a2e;
+    color: white;
+    box-shadow: 0 4px 12px rgba(166, 58, 46, 0.2);
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Advance Salaries</h2>
+      <p>Track and manage employee advance payments.</p>
+    </div>
+    <div>
+      <a class="btn primary" href="{% url 'advance_add' %}">+ Record New Advance</a>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Disbursed</div>
+      <div class="stat-value">₹{{ total_given }}</div>
+      <div class="muted" style="font-size:13px; margin-top:8px;">Total outstanding advances</div>
+    </div>
+  </div>
+
+  <main class="table-card">
+    <div style="overflow-x: auto;">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Employee Name</th>
+            <th>Amount</th>
+            <th>Date Paid</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in advances %}
+            <tr>
+              <td>
+                <span style="font-weight:700; font-size:15px; color:var(--text);">{{ a.employee_name }}</span>
+              </td>
+              <td>
+                <span style="font-family:monospace; font-weight:600; font-size:15px; color:var(--accent-600);">₹{{ a.amount }}</span>
+              </td>
+              <td style="color:var(--muted);">
+                {{ a.paid_on }}
+              </td>
+              <td style="text-align:right;">
+                <form method="post" action="{% url 'advance_delete' a.pk %}" onsubmit="return confirm('Are you sure you want to delete this record for {{ a.employee_name }}?');" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-delete">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" style="text-align:center; padding:50px; color:var(--muted);">
+                No advance salary records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+</div>
+{% endblock %}

@@ -1,186 +1,51 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Export Records</title>
-
-  <style>
-    :root{
-      --accent:#2563eb;
-      --accent-2:#1e40af;
-      --muted:#6b7280;
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --danger:#d9534f;
-      --radius:12px;
-      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
-      --max-width:980px;
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-      background:linear-gradient(180deg,#fbfdff 0%,var(--bg) 100%);
-      color:#0f1724;
-      padding:28px 18px;
-      -webkit-font-smoothing:antialiased;
-    }
-
-    .container{max-width:var(--max-width); margin:0 auto}
-
-    /* HEADER */
-    header.appbar{
-      display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;
-    }
-    .brand{display:flex; gap:12px; align-items:center}
-    .logo{
-      width:44px; height:44px; border-radius:10px; display:grid;
-      place-items:center; color:white; font-weight:700; font-size:18px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      box-shadow:0 8px 30px rgba(16,24,40,0.12);
-    }
-    .title-hdr{font-size:18px; font-weight:700}
-    .subtitle-hdr{color:var(--muted); font-size:13px}
-
-    nav.actions{display:flex; gap:10px; align-items:center}
-    a.btn{
-      padding:10px 14px; border-radius:10px; text-decoration:none;
-      font-weight:700; background:var(--card);
-      color:var(--accent-2); border:1px solid rgba(37,99,235,0.08);
-    }
-    a.btn.primary{
-      background:linear-gradient(180deg,var(--accent),var(--accent-2));
-      border:none; color:white;
-      box-shadow:0 8px 30px rgba(37,99,235,0.15);
-    }
-
-    /* MAIN CARD */
-    main.card{
-      background:var(--card);
-      padding:26px;
-      border-radius:var(--radius);
-      box-shadow:var(--shadow-lg);
-      border:1px solid rgba(12,18,33,0.05);
-    }
-
-    h2{margin:0; color:var(--accent-2); font-size:22px}
-    .muted{color:var(--muted)}
-
-    /* FORM */
-    form.export-form{
-      margin-top:18px;
-      display:grid;
-      gap:16px;
-      max-width:700px;
-    }
-
-    .row{display:flex; gap:14px; flex-wrap:wrap}
-    label{font-weight:700; margin-bottom:6px; display:block; color:#0b294a}
-
-    input[type="date"], select{
-      width:100%;
-      padding:12px 14px;
-      border-radius:10px;
-      border:1px solid #e6eef8;
-      background:#fbfdff;
-      font-size:15px;
-      outline:none;
-      transition:0.12s border-color, 0.12s box-shadow;
-    }
-    input:focus, select:focus{
-      border-color:var(--accent);
-      box-shadow:0 6px 20px rgba(37,99,235,0.15);
-    }
-
-    .controls{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:4px;
-    }
-
-    button.primary{
-      padding:12px 18px;
-      border-radius:10px;
-      border:none;
-      background:linear-gradient(180deg,var(--accent),var(--accent-2));
-      color:white;
-      font-weight:800;
-      cursor:pointer;
-      box-shadow:0 10px 32px rgba(30,64,175,0.15);
-    }
-    a.ghost{
-      padding:12px 18px;
-      border-radius:10px;
-      border:1px solid rgba(12,18,33,0.1);
-      background:transparent;
-      color:var(--accent-2);
-      text-decoration:none;
-      font-weight:700;
-    }
-
-    .errors{color:var(--danger); font-weight:700; margin-top:8px}
-    .hint{font-size:13px; color:var(--muted)}
-
-    @media(max-width:700px){
-      .row{flex-direction:column}
-    }
-  </style>
-</head>
-
-<body>
-<div class="container">
-
-  <!-- HEADER -->
-  <header class="appbar">
-    <div class="brand">
-      <div class="logo">R</div>
+{% extends "base.html" %}
+{% block title %}Export Records{% endblock %}
+{% block content %}
+<div style="max-width:980px;margin:0 auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div style="width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent-600),var(--accent));color:#fff;font-weight:800">R</div>
       <div>
-        <div class="title-hdr">Record Manager</div>
-        <div class="subtitle-hdr">Export orders to Excel</div>
+        <div style="font-weight:800">Record Manager</div>
+        <div class="muted" style="font-size:13px">Export orders to Excel</div>
       </div>
     </div>
 
-    <nav class="actions">
+    <div style="display:flex;gap:10px;align-items:center">
       <a href="{% url 'show_all_records' %}" class="btn">All Records</a>
       <a href="{% url 'add_record' %}" class="btn primary">Add Record</a>
-    </nav>
-  </header>
+    </div>
+  </div>
 
-  <!-- MAIN CONTENT -->
-  <main class="card" role="main" aria-labelledby="export-heading">
-
-    <h2 id="export-heading">Export Orders</h2>
-    <p class="muted">Select a date range and optional filters to export matching orders as a CSV file.</p>
+  <main class="page-card" style="padding:22px">
+    <h2 style="margin:0 0 6px 0;color:var(--accent-600)">Export Orders</h2>
+    <div class="muted">Select a date range and optional filters to export matching orders as a CSV file.</div>
 
     {% if messages %}
-      {% for m in messages %}
-        <div class="errors">{{ m }}</div>
-      {% endfor %}
+      <div style="margin-top:12px">
+        {% for m in messages %}
+          <div style="background:rgba(181,90,72,0.06);padding:10px;border-radius:10px;color:#7a2b20;margin-bottom:8px;font-weight:700">{{ m }}</div>
+        {% endfor %}
+      </div>
     {% endif %}
 
-    <!-- EXPORT FORM -->
-    <form method="get" action="{% url 'export_csv' %}" class="export-form">
-
-      <div class="row">
-        <div style="flex:1; min-width:200px">
-          <label>From date</label>
-          <input type="date" name="from_date" value="{{ initial.from_date }}">
+    <form method="get" action="{% url 'export_csv' %}" style="display:grid;gap:16px;margin-top:16px;max-width:760px">
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label style="font-weight:700;color:var(--accent);">From date</label>
+          <input type="date" name="from_date" value="{{ initial.from_date }}" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff" />
         </div>
 
-        <div style="flex:1; min-width:200px">
-          <label>To date</label>
-          <input type="date" name="to_date" value="{{ initial.to_date }}">
+        <div style="flex:1;min-width:200px">
+          <label style="font-weight:700;color:var(--accent);">To date</label>
+          <input type="date" name="to_date" value="{{ initial.to_date }}" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff" />
         </div>
       </div>
 
-      <div class="row">
-        <div style="flex:1; min-width:200px">
-          <label>Location</label>
-          <select name="location">
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label style="font-weight:700;color:var(--accent);">Location</label>
+          <select name="location" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
             <option value="">All locations</option>
             <option value="Dulari" {% if initial.location == "Dulari" %}selected{% endif %}>Dulari</option>
             <option value="Pours and Plates" {% if initial.location == "Pours and Plates" %}selected{% endif %}>Pours and Plates</option>
@@ -188,9 +53,9 @@
           </select>
         </div>
 
-        <div style="flex:1; min-width:200px">
-          <label>Status</label>
-          <select name="status">
+        <div style="flex:1;min-width:200px">
+          <label style="font-weight:700;color:var(--accent);">Status</label>
+          <select name="status" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
             <option value="">Any</option>
             <option value="Pending" {% if initial.status == "Pending" %}selected{% endif %}>Pending</option>
             <option value="Completed" {% if initial.status == "Completed" %}selected{% endif %}>Completed</option>
@@ -198,14 +63,12 @@
         </div>
       </div>
 
-      <div class="controls">
-        <button type="submit" class="primary">Download CSV</button>
-        <a href="{% url 'export_form' %}" class="ghost">Reset</a>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+        <button type="submit" class="btn primary" style="padding:12px 18px;border-radius:10px;font-weight:800">Download CSV</button>
+        <a href="{% url 'export_form' %}" class="btn" style="background:transparent;border:1px solid rgba(11,11,11,0.06)">Reset</a>
+        <div style="margin-left:auto;color:var(--muted);font-size:13px">Tip: leave dates empty to export all</div>
       </div>
-
     </form>
-
   </main>
 </div>
-</body>
-</html>
+{% endblock %}

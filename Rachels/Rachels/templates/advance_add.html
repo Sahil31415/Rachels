@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Advance — Payroll</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* The Aesthetic Palette */
+      --bg: #F0EAE3;
+      --card: #fbf7f3;
+      --text: #24201C;
+      --muted: #857F72;
+      --accent: #5A4032;      /* Rich Brown */
+      --accent-600: #1C1A17;  /* Charcoal */
+      --success: #3C5A3C;     /* Earthy Green */
+      --danger: #a63a2e;      /* Burnt Red */
+      --radius: 16px;
+      
+      /* Luxurious Shadows */
+      --shadow-sm: 0 4px 12px rgba(90, 64, 50, 0.08);
+      --shadow-lg: 0 20px 50px rgba(90, 64, 50, 0.12);
+      
+      --max-width: 900px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      /* Warm Radial Gradient */
+      background: radial-gradient(circle at top, #F8F4F0 0%, var(--bg) 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      padding:28px 18px;
+    }
+
+    .container{max-width:var(--max-width); margin:0 auto}
+
+    /* --- Header --- */
+    header.appbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:32px;
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    
+    .logo{
+      width:48px;height:48px;border-radius:12px;
+      /* Brown Gradient */
+      background:linear-gradient(135deg,var(--accent),var(--accent-600));
+      display:inline-grid;place-items:center;color:white;font-weight:800;font-size:20px;
+      box-shadow: 0 4px 12px rgba(90, 64, 50, 0.2);
+    }
+    .brand h1{font-size:18px; font-weight:800; margin:0; letter-spacing:-0.01em;}
+    .muted-small{color:var(--muted);font-size:13px; margin-top:2px;}
+
+    /* --- Navigation --- */
+    .nav-actions{display:flex; gap:10px; align-items:center; flex-wrap: wrap;}
+    
+    a.btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 16px; border-radius:10px; background:transparent;
+      color:var(--text); border:1px solid rgba(90, 64, 50, 0.12);
+      text-decoration:none; font-weight:600; font-size:14px;
+      transition: all 0.2s;
+    }
+    a.btn:hover{
+      background: rgba(255,255,255,0.5);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    a.primary{
+      background:linear-gradient(180deg,var(--accent),var(--accent-600));
+      color:white; border:none;
+      box-shadow: 0 4px 15px rgba(90, 64, 50, 0.2);
+    }
+    a.primary:hover{
+      background:linear-gradient(180deg,var(--accent),var(--accent-600));
+      filter: brightness(1.1);
+      color:white;
+    }
+
+    /* --- Main Card --- */
+    main.card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:40px;
+      box-shadow:var(--shadow-lg);
+      border:1px solid rgba(255,255,255,0.6);
+    }
+
+    .page-title{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:24px }
+    h2{ margin:0; color:var(--accent-600); font-size:24px; font-weight:800; }
+    p.lead{ margin:6px 0 0 0; color:var(--muted); font-size:14px; }
+
+    /* --- Form Styling --- */
+    form { margin-top:20px; max-width:600px }
+    
+    label{ 
+      display:block; margin-bottom:8px; 
+      font-weight:600; color:var(--accent); 
+      font-size:12px; text-transform:uppercase; letter-spacing:0.05em;
+    }
+    
+    .field{ margin-bottom:24px }
+
+    /* Inputs */
+    input[type="text"], input[type="date"], input[type="number"], select, textarea{
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid rgba(90, 64, 50, 0.15);
+      background:#fff;
+      font-size:15px;
+      color:var(--text);
+      outline:none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus {
+      border-color:var(--accent);
+      box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .hint{ color:var(--muted); font-size:13px; margin-top:6px }
+
+    /* Form Actions */
+    .form-actions{ 
+      display:flex; gap:12px; align-items:center; margin-top:32px; 
+      padding-top:24px; border-top:1px solid rgba(90,64,50,0.08);
+    }
+    
+    button.btn-submit{
+      padding:12px 24px; border-radius:10px; border:none; 
+      background:linear-gradient(180deg,var(--accent),var(--accent-600));
+      color:#fff; font-weight:700; cursor:pointer; 
+      box-shadow: 0 4px 15px rgba(90, 64, 50, 0.2);
+      font-size: 15px; transition: all 0.2s;
+    }
+    button.btn-submit:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    
+    a.btn-ghost{
+      padding:12px 20px; border-radius:10px; background:transparent; color:var(--muted);
+      font-weight:600; text-decoration:none; font-size: 14px;
+      transition: all 0.2s;
+    }
+    a.btn-ghost:hover { color: var(--text); background: rgba(90,64,50,0.05); }
+
+    /* Messages */
+    .messages{ margin-bottom:20px }
+    .msg{ padding:12px 16px; border-radius:10px; font-weight:600; font-size:14px; margin-bottom:10px; }
+    .msg.success{ background: rgba(60, 90, 60, 0.1); color:var(--success); border:1px solid rgba(60, 90, 60, 0.15) }
+    .msg.error{ background: rgba(166, 58, 46, 0.1); color:var(--danger); border:1px solid rgba(166, 58, 46, 0.15) }
+
+    @media (max-width:880px){
+      .page-title{ flex-direction:column; align-items:flex-start }
+      main.card{ padding:24px }
+      .nav-actions { width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 4px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <h1>Payroll</h1>
+          <div class="muted-small">Advance salaries</div>
+        </div>
+      </div>
+
+      <nav class="nav-actions">
+        <a href="{% url 'show_all_records' %}" class="btn">Records</a>
+        <a href="{% url 'add_record' %}" class="btn">Add record</a>
+        <a href="{% url 'advance_list' %}" class="btn primary">View Advances</a>
+      </nav>
+    </header>
+
+    <main class="card" role="main" aria-labelledby="add-advance">
+      <div class="page-title">
+        <div>
+          <h2 id="add-advance">Add Advance</h2>
+          <p class="lead">Record an advance payment given to an employee.</p>
+        </div>
+      </div>
+
+      <div class="messages">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="field">
+          <label for="id_employee_name">Employee Name</label>
+          {{ form.employee_name }}
+          {% if form.employee_name.errors %}
+            <div class="hint" style="color:var(--danger);font-weight:700">⚠ {{ form.employee_name.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_paid_on">Date Paid</label>
+          {{ form.paid_on }}
+          {% if form.paid_on.errors %}
+            <div class="hint" style="color:var(--danger);font-weight:700">⚠ {{ form.paid_on.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_amount">Amount</label>
+          {{ form.amount }}
+          {% if form.amount.errors %}
+            <div class="hint" style="color:var(--danger);font-weight:700">⚠ {{ form.amount.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Save Advance</button>
+          <a href="{% url 'advance_list' %}" class="btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
+</html>

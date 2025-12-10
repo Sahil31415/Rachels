@@ -1,332 +1,388 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Add Record</title>
+{% extends "base.html" %}
 
-  <style>
-    :root{
-      --accent:#2563eb;
-      --accent-2:#1e40af;
-      --muted:#6b7280;
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --danger:#d9534f;
-      --success:#059669;
-      --radius:12px;
-      --gap:14px;
-      --shadow-sm: 0 8px 30px rgba(16,24,40,0.06);
-      --shadow-lg: 0 20px 50px rgba(16,24,40,0.08);
-      --max-width:1100px;
-    }
+{% block title %}Add Record{% endblock %}
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg,#fbfdff 0%, var(--bg) 100%);
-      color:#0f1724;
-      -webkit-font-smoothing:antialiased;
-      padding:28px 18px;
-    }
+{% block head %}
+<style>
+  /* --- Add Record Premium Styles --- */
+  
+  .form-container {
+    max-width: 840px;
+    margin: 40px auto;
+    background: var(--page);
+    padding: 48px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(90, 64, 50, 0.08); 
+  }
 
-    .container{max-width:var(--max-width); margin:0 auto}
-    header.appbar{
-      display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px;
-    }
-    .brand{display:flex; align-items:center; gap:12px}
-    .logo{width:44px; height:44px; border-radius:10px; display:grid; place-items:center; color:white;
-           font-weight:700; font-size:18px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow-sm)}
-    .title-hdr{font-size:18px; font-weight:700; margin:0}
-    .subtitle-hdr{color:var(--muted); font-size:13px}
+  /* Header */
+  .form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
+  }
+  
+  .header-content h2 { margin: 0 0 6px 0; color: var(--accent-600); font-size: 26px; font-weight: 800; }
+  .header-content p { margin: 0; color: var(--muted); font-size: 14px; }
 
-    nav.actions{display:flex; gap:10px; align-items:center}
-    a.btn{
-      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
-      padding:10px 14px; border-radius:10px; font-weight:700; font-size:14px;
-      background:var(--card); color:var(--accent-2); border:1px solid rgba(37,99,235,0.08)
-    }
-    a.btn.primary{ background: linear-gradient(180deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:0 8px 30px rgba(37,99,235,0.12); border:none }
+  .manager-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent-600));
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 10px rgba(90, 64, 50, 0.15);
+  }
 
-    /* Card */
-    .card{
-      background:var(--card); border-radius:var(--radius); padding:26px; box-shadow:var(--shadow-lg);
-      border: 1px solid rgba(12,18,33,0.04);
-    }
+  /* Form Layouts */
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 36px;
+  }
 
-    .page-title{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
-    h2{ margin:0; color:var(--accent-2); font-size:22px }
-    p.lead{ margin:4px 0 20px 0; color:var(--muted) }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
 
-    /* messages */
-    .messages{ margin-bottom:16px; display:flex; flex-direction:column; gap:10px }
-    .msg{ padding:12px 14px; border-radius:10px; font-weight:600; font-size:14px }
-    .msg.success{ background: rgba(5,150,105,0.08); color:var(--success); border:1px solid rgba(5,150,105,0.12) }
-    .msg.error{ background: rgba(217,83,79,0.06); color:var(--danger); border:1px solid rgba(217,83,79,0.10) }
+  /* Inputs & Selects */
+  .form-control {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(90, 64, 50, 0.15);
+    background: #fff;
+    font-size: 15px;
+    color: var(--text);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    box-shadow: 0 2px 4px rgba(90, 64, 50, 0.02); /* Subtle depth */
+  }
 
-    /* form layout */
-    form { margin-top:6px; }
-    .form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:18px; }
-    .form-col{ min-width:0; }
-    label{ display:block; margin-bottom:8px; font-weight:700; color:#0b294a; font-size:14px; }
+  .form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
+    transform: translateY(-1px);
+  }
 
-    /* Inputs */
-    input[type="text"], input[type="date"], textarea, select{
-      width:100%;
-      padding:12px 14px;
-      border-radius:10px;
-      border:1px solid #e6eef8;
-      background: #fbfdff;
-      font-size:15px;
-      color: #06233a;
-      outline:none;
-      transition:box-shadow .12s, border-color .12s;
-      -webkit-appearance:none;
-      -moz-appearance:none;
-      appearance:none;
-    }
-    select{ background-image: linear-gradient(45deg, transparent 50%, #334155 50%), linear-gradient(135deg, #334155 50%, transparent 50%); background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px); background-size: 6px 6px, 6px 6px; background-repeat:no-repeat, no-repeat; padding-right:36px; }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent-2); box-shadow: 0 8px 30px rgba(37,99,235,0.10); }
+  /* Custom Select Arrow styling */
+  select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A4032' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
 
-    textarea{ min-height:160px; resize:vertical }
+  .form-control[readonly] {
+    background: rgba(90, 64, 50, 0.05);
+    color: var(--muted);
+    border-color: transparent;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
-    /* error text */
-    .field-errors{ color:var(--danger); margin-top:6px; font-size:13px; font-weight:600 }
+  /* Item Rows Container */
+  .items-wrapper {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(90, 64, 50, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+  }
 
-    /* form actions */
-    .form-actions{ display:flex; gap:10px; align-items:center; margin-top:18px }
-    button.btn-submit{
-      padding:12px 18px; border-radius:10px; border:none; background:var(--accent-2); color:#fff; font-weight:800; cursor:pointer;
-      box-shadow:0 10px 32px rgba(30,64,175,0.12)
-    }
-    a.btn-ghost{ padding:10px 14px; border-radius:10px; background:transparent; color:var(--accent-2); border:1px solid rgba(30,64,175,0.08); font-weight:700 }
+  .item-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 48px; /* Vendor | Item | Qty | Del */
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: center;
+    animation: slideDown 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
 
-    /* hint */
-    .hint{ color:var(--muted); font-size:13px; margin-top:8px }
+  /* Delete Button (Icon) */
+  .btn-remove {
+    width: 48px;
+    height: 48px; /* Matches input height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #a63a2e;
+    border: 1px solid rgba(181, 90, 72, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-remove:hover {
+    background: #a63a2e;
+    color: white;
+    box-shadow: 0 4px 10px rgba(166, 58, 46, 0.2);
+    transform: rotate(90deg); /* Playful rotation on hover */
+  }
 
-    /* helper row */
-    .helper-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px }
+  /* Add Button (Dashed Area) */
+  .btn-add-row {
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed rgba(90, 64, 50, 0.15);
+    background: transparent;
+    color: var(--accent);
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-add-row:hover {
+    background: rgba(90, 64, 50, 0.05);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
 
-    /* popup */
-    .toast {
-      position: fixed;
-      left: 50%;
-      top: 20%;
-      transform: translateX(-50%) translateY(-10px);
+  /* Actions Footer */
+  .form-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(90, 64, 50, 0.1);
+  }
+  .form-actions .btn { flex: 1; justify-content: center; padding: 14px; }
+
+  /* Mobile */
+  @media (max-width: 680px) {
+    .form-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+    .item-row {
+      grid-template-columns: 1fr;
       background: #fff;
+      padding: 16px;
       border-radius: 12px;
-      padding: 14px 18px;
-      box-shadow: 0 8px 30px rgba(16,24,40,0.12);
-      border: 1px solid rgba(8,24,48,0.06);
-      display: flex;
-      gap: 12px;
-      align-items:center;
-      z-index: 9999;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
+      border: 1px solid rgba(90,64,50,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      position: relative;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-      pointer-events: auto;
+    .btn-remove {
+      position: absolute; top: 12px; right: 12px;
+      width: 32px; height: 32px;
+      border: none; background: rgba(166, 58, 46, 0.1);
     }
-    .toast .ok {
-      width:36px; height:36px; border-radius:8px; display:grid; place-items:center; background:linear-gradient(180deg,#10b981,#059669); color:white; font-weight:800;
-    }
+    .btn-remove svg { width: 16px; height: 16px; }
+    .items-wrapper { padding: 16px; background: transparent; border: none; }
+  }
 
-    /* responsive */
-    @media (max-width:880px){ .form-grid{ grid-template-columns: 1fr } .actions-sm{ display:flex; gap:10px } }
-  </style>
-</head>
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
 
-<body>
-  <div class="container">
-
-    <!-- header -->
-    <header class="appbar">
-      <div class="brand">
-        <div class="logo">R</div>
-        <div>
-          <div class="title-hdr">Record Manager</div>
-          <div class="subtitle-hdr">Add a new order entry</div>
-        </div>
-      </div>
-
-      <nav class="actions">
-        <a href="{% url 'show_all_records' %}" class="btn">All Records</a>
-        <a href="{% url 'Home' %}" class="btn primary">Dashboard</a>
-      </nav>
-    </header>
-
-    <main class="card" role="main" aria-labelledby="add-heading">
-      <div class="page-title">
-        <div>
-          <h2 id="add-heading">Add New Record</h2>
-          <p class="lead">Fill in the details for the new entry. Fields marked required must be completed.</p>
-        </div>
-
-        <div class="helper-row">
-          <div class="hint">Tip: press <strong>Enter</strong> to submit after filling details.</div>
-        </div>
-      </div>
-
-      <!-- django messages -->
-      <div class="messages">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">
-              {{ message }}
-            </div>
-          {% endfor %}
-        {% endif %}
-      </div>
-
-      <!-- form -->
-      <form id="recordForm" method="POST" novalidate action="{% url 'add_record' %}">
-        {% csrf_token %}
-
-        <div class="form-grid">
-          <div class="form-col">
-            <label for="id_date">Date <span style="color:var(--muted); font-weight:600; font-size:13px">(required)</span></label>
-            {{ form.date }}
-            {% if form.date.errors %}
-              <div class="field-errors">{{ form.date.errors|striptags }}</div>
-            {% endif %}
-            <div class="hint" aria-hidden="true">Use the calendar to select the order date</div>
-          </div>
-
-          <div class="form-col">
-            <label for="id_location">Location <span style="color:var(--muted); font-weight:600; font-size:13px">(required)</span></label>
-            {{ form.location }}
-            {% if form.location.errors %}
-              <div class="field-errors">{{ form.location.errors|striptags }}</div>
-            {% endif %}
-            <div class="hint">Choose the outlet where this order belongs</div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:6px">
-          <label for="id_details">Details</label>
-          {{ form.details }}
-          {% if form.details.errors %}
-            <div class="field-errors">{{ form.details.errors|striptags }}</div>
-          {% endif %}
-          <div class="hint">Add any notes, items or instructions (min 10 characters recommended)</div>
-        </div>
-
-        {% if form.non_field_errors %}
-          <div class="field-errors">{{ form.non_field_errors|striptags }}</div>
-        {% endif %}
-
-        <div class="form-actions">
-          <button id="submitBtn" type="submit" class="btn-submit">Save Record</button>
-          <a href="{% url 'Home' %}" class="btn-ghost">Cancel</a>
-        </div>
-      </form>
-    </main>
-  </div>
-
-  <!-- success toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
-    <div class="ok">✓</div>
-    <div>
-      <div style="font-weight:800">Saved</div>
-      <div class="muted" style="font-size:13px">Record was added successfully. Redirecting...</div>
+{% block content %}
+<main class="form-container">
+  
+  <div class="form-header">
+    <div class="header-content">
+      <h2>Add New Record</h2>
+      <p>Log items received for a specific date and location.</p>
     </div>
+    {% if manager_location %}
+      <div class="manager-badge">
+        {{ manager_location }}
+      </div>
+    {% endif %}
   </div>
 
-  <script>
-    // Helper: get cookie (for CSRF)
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
+  <form id="recordForm" method="post" action="{% url 'add_record' %}">
+    {% csrf_token %}
+    
+    <div class="form-grid-2">
+      <div>
+        <label>Date Received</label>
+        {{ form.date }} 
+      </div>
+      <div>
+        <label>Location</label>
+        {% if is_admin %}
+          {{ form.location }}
+        {% else %}
+          <input type="text" class="form-control" value="{{ manager_location }}" readonly />
+          <input type="hidden" name="location" value="{{ manager_location }}">
+        {% endif %}
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
+        <label style="margin:0;">Item Requisition Details</label>
+        <span style="font-size:11px; color:var(--muted); font-weight:600;">Vendor &rarr; Item &rarr; Quantity</span>
+      </div>
+
+      <div class="items-wrapper">
+        <div id="itemsWrap">
+          <div class="item-row">
+            <select name="vendor[]" class="form-control vendor-select" required onchange="populateItemsForRow(this)">
+              <option value="">Select Vendor</option>
+              {% for v in vendors %}
+                <option value="{{ v.id }}">{{ v.name }}</option>
+              {% endfor %}
+            </select>
+
+            <select name="item[]" class="form-control item-select" required>
+              <option value="">Select Item</option>
+            </select>
+
+            <input type="number" name="quantity[]" class="form-control" min="1" value="1" placeholder="Qty" required />
+
+            <button type="button" class="btn-remove" onclick="removeItemRow(this)" title="Remove item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="addRowBtn" class="btn-add-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Another Item
+        </button>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn primary">Save Record</button>
+      <a href="{% url 'Home' %}" class="btn ghost">Cancel</a>
+    </div>
+
+  </form>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // 1. Build Data Map
+  const vendorItems = {
+    {% for vendor in vendors %}
+      "{{ vendor.id }}": [
+        {% for item in vendor.items.all %}
+          { "id": "{{ item.id }}", "name": "{{ item.item_name|escapejs }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  // 2. Populate Logic
+  function populateItemsForRow(selectVendorEl) {
+    const vendorId = selectVendorEl.value;
+    const row = selectVendorEl.closest('.item-row');
+    const itemSelect = row.querySelector('.item-select');
+    
+    // Clear and add placeholder
+    itemSelect.innerHTML = '<option value="">Select Item</option>';
+    
+    if (vendorId && vendorItems[vendorId]) {
+      vendorItems[vendorId].forEach(it => {
+        const opt = document.createElement('option');
+        opt.value = it.id;
+        opt.textContent = it.name;
+        itemSelect.appendChild(opt);
+      });
+      // Visual flair: flash the item select to show it updated
+      itemSelect.style.borderColor = 'var(--accent)';
+      setTimeout(() => itemSelect.style.borderColor = '', 300);
     }
+  }
 
-    (function () {
-      const form = document.getElementById('recordForm');
-      const btn = document.getElementById('submitBtn');
-      const toast = document.getElementById('toast');
-      const homeUrl = "{% url 'Home' %}";
+  // 3. Remove Logic
+  function removeItemRow(btn) {
+    const wrap = document.getElementById('itemsWrap');
+    const rows = wrap.querySelectorAll('.item-row');
+    
+    // Prevent removing the last row, just clear it
+    if (rows.length <= 1) {
+      const row = btn.closest('.item-row');
+      row.querySelector('.vendor-select').value = '';
+      row.querySelector('.item-select').innerHTML = '<option value="">Select Item</option>';
+      row.querySelector('input[name="quantity[]"]').value = 1;
+      return;
+    }
+    
+    // Animate out
+    const row = btn.closest('.item-row');
+    row.style.opacity = '0';
+    row.style.transform = 'scale(0.95)';
+    setTimeout(() => row.remove(), 200);
+  }
 
-      // Auto focus the date field (if present)
-      const dateField = document.getElementById('id_date');
-      if (dateField) {
-        if (!dateField.value) {
-          const today = new Date().toISOString().slice(0,10);
-          dateField.value = today;
-        }
-        dateField.focus();
-      }
+  // 4. Add Row Logic
+  document.getElementById('addRowBtn').addEventListener('click', function(){
+    const wrap = document.getElementById('itemsWrap');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    
+    div.innerHTML = `
+      <select name="vendor[]" class="form-control vendor-select" required onchange="populateItemsForRow(this)">
+        <option value="">Select Vendor</option>
+        {% for v in vendors %}
+          <option value="{{ v.id }}">{{ v.name }}</option>
+        {% endfor %}
+      </select>
 
-      // Intercept submit and post via fetch so we can show popup then redirect
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
+      <select name="item[]" class="form-control item-select" required>
+        <option value="">Select Item</option>
+      </select>
 
-        // minimal validation: ensure date and location not empty
-        const location = document.getElementById('id_location');
-        if (!dateField.value || (location && !location.value)) {
-          alert('Please fill required fields: Date and Location.');
-          return;
-        }
+      <input type="number" name="quantity[]" class="form-control" min="1" value="1" placeholder="Qty" required />
 
-        btn.disabled = true;
-        btn.innerText = 'Saving...';
-
-        // Prepare form data
-        const formData = new FormData(form);
-
-        // Fetch POST (include credentials so session cookie sent)
-        fetch(form.action, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-          headers: {
-            // Accept HTML so server can respond with rendered form or redirect target HTML
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCookie('csrftoken') || ''
-          },
-          redirect: 'follow'
-        }).then(async (response) => {
-          // Successful status range => either redirected to home (on success), or server re-rendered form (on validation errors)
-          // If server performed a redirect to another URL (response.url differs) treat as success.
-          const redirected = response.redirected;
-          const finalUrl = response.url;
-
-          if (response.ok && (redirected || finalUrl === window.location.origin + homeUrl || finalUrl.endsWith(homeUrl) || finalUrl === window.location.href)) {
-            // Show success toast and redirect to home after a short delay
-            toast.classList.add('show');
-
-            setTimeout(() => {
-              // Ensure redirect to home
-              window.location.href = homeUrl;
-            }, 1100);
-            return;
-          }
-
-          // If server returned OK but did not redirect, it probably re-rendered the form with errors.
-          // Replace document with server HTML so user sees validation errors.
-          const text = await response.text();
-          document.open();
-          document.write(text);
-          document.close();
-        }).catch((err) => {
-          console.error('Submit error', err);
-          alert('An error occurred while saving. Please try again.');
-          btn.disabled = false;
-          btn.innerText = 'Save Record';
-        });
-      });
-
-      // restore button if user navigates back (some browsers keep disabled state)
-      window.addEventListener('pageshow', function () {
-        btn.disabled = false;
-        btn.innerText = 'Save Record';
-      });
-    })();
-  </script>
-</body>
-</html>
+      <button type="button" class="btn-remove" onclick="removeItemRow(this)" title="Remove item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
+    `;
+    wrap.appendChild(div);
+  });
+  
+  // 5. Init Scripts to ensure styling applies to Django fields
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add class 'form-control' to Django-rendered inputs if they don't have it
+    const dateInput = document.querySelector('input[name="date"]');
+    if(dateInput) {
+        dateInput.classList.add('form-control');
+        dateInput.type = 'date'; // Force date picker
+    }
+    
+    const locInput = document.querySelector('select[name="location"]');
+    if(locInput) locInput.classList.add('form-control');
+  });
+</script>
+{% endblock %}
