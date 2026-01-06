@@ -40,16 +40,13 @@ def admin_required(view_func):
 def home(request):
     field_names = [f.name for f in Record._meta.fields]
     has_status = 'status' in field_names
-
-    # total pending
     if has_status:
         total_pending = Record.objects.filter(status__iexact='Pending').count()
     else:
         total_pending = Record.objects.count()
 
-    # pending by location
     if has_status:
-        pending_by_location_qs = (
+        pending_by_location = list(
             Record.objects
                   .filter(status__iexact='Pending')
                   .values('location')
@@ -57,51 +54,60 @@ def home(request):
                   .order_by('-count', 'location')
         )
     else:
-        pending_by_location_qs = (
+        pending_by_location = list(
             Record.objects
                   .values('location')
                   .annotate(count=Count('id'))
                   .order_by('-count', 'location')
         )
-    pending_by_location = list(pending_by_location_qs)
 
-    # top 5 orders
     if has_status:
-        top5_orders = Record.objects.filter(status__iexact='Pending').order_by('-date', '-id')[:5]
+        top5_orders = (
+            Record.objects
+                  .filter(status__iexact='Pending')
+                  .order_by('-date', '-id')[:5]
+        )
     else:
-        top5_orders = Record.objects.all().order_by('-date', '-id')[:5]
+        top5_orders = Record.objects.order_by('-date', '-id')[:5]
 
-    latest_records = Record.objects.all().order_by('-date', '-id')[:5]
+    latest_records = Record.objects.order_by('-date', '-id')[:5]
 
-    # Locations to build cards for — sync with your choices/form
     ALL_LOCATIONS = ['Dulari', 'Pours and Plates', 'Rachels', 'Rachels1', 'Rachels2']
     location_cards = []
+
     for loc in ALL_LOCATIONS:
-        # if user not allowed to view this location, skip
         if not user_can_view_location(request.user, loc):
             continue
 
         if has_status:
-            pending_qs = Record.objects.filter(location=loc, status__iexact='Pending').order_by('-date', '-id')
-            successful_qs = Record.objects.filter(location=loc).exclude(status__iexact='Pending').order_by('-date', '-id')
+            pending_base = Record.objects.filter(
+                location=loc,
+                status__iexact='Pending'
+            ).order_by('-date', '-id')
+
+            successful_base = Record.objects.filter(
+                location=loc
+            ).exclude(
+                status__iexact='Pending'
+            ).order_by('-date', '-id')
         else:
-            pending_qs = Record.objects.filter(location=loc).order_by('-date', '-id')
-            successful_qs = Record.objects.none()
+            pending_base = Record.objects.filter(location=loc).order_by('-date', '-id')
+            successful_base = Record.objects.none()
 
         location_cards.append({
-            'location': loc,
-            'pending': list(pending_qs),
-            'successful': list(successful_qs),
-            'pending_count': pending_qs.count(),
-            'successful_count': successful_qs.count(),
+            "location": loc,
+            "pending": list(pending_base[:5]),
+            "successful": list(successful_base[:5]),
+            "pending_count": pending_base.count(),
+            "successful_count": successful_base.count(),
         })
 
     context = {
-        'total_pending': total_pending,
-        'pending_by_location': pending_by_location,
-        'latest_records': latest_records,
-        'top5_orders': top5_orders,
-        'location_cards': location_cards,
+        "total_pending": total_pending,
+        "pending_by_location": pending_by_location,
+        "latest_records": latest_records,
+        "top5_orders": top5_orders,
+        "location_cards": location_cards,
     }
     return render(request, "home.html", context)
 
