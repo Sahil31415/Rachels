@@ -4,112 +4,145 @@
 
 {% block head %}
 <style>
-  /* --- Record Detail Specific Styles --- */
+/* ===============================
+   RECORD DETAIL – FINAL POLISH
+   =============================== */
 
-  /* Header Section: Title and Badge */
-  .record-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 24px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
-  }
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(90,64,50,0.12);
+}
 
-  /* The Grid for Data Fields */
-  .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 32px 24px; /* Row gap larger for separation */
-    margin-bottom: 40px;
-  }
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 32px 28px;
+  margin-bottom: 40px;
+}
 
-  /* Typography for Fields */
-  .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .field-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    font-weight: 600;
-  }
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-  .field-value {
-    font-size: 16px;
-    color: var(--text);
-    font-weight: 500;
-    line-height: 1.4;
-  }
+.field-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  font-weight: 700;
+}
 
-  /* Emphasize specific values */
-  .field-value.highlight {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--accent-600);
-  }
+.field-value {
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 500;
+}
 
-  /* Status Badges (Matching Dashboard) */
-  .badge {
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    display: inline-block;
-  }
-  .badge.pending { background: rgba(160, 82, 45, 0.1); color: #A0522D; }
-  .badge.completed { background: rgba(60, 90, 60, 0.1); color: #3C5A3C; }
-  .badge.default { background: rgba(11,11,11,0.04); color: #334155; }
+.field-value.highlight {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent-600);
+}
 
-  /* Action Buttons Area */
-  .actions-bar {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-    padding-top: 24px;
-    border-top: 1px solid rgba(90, 64, 50, 0.1);
-  }
+/* Status badges */
+.badge {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
 
-  /* Danger Button Style (Burnt Red) */
-  .btn-danger {
-    background: #c95c5c;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(201, 92, 92, 0.2);
-  }
-  .btn-danger:hover {
-    background: #b04646;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(201, 92, 92, 0.3);
-  }
+.badge.pending {
+  background: rgba(160,82,45,.12);
+  color: #a0522d;
+}
 
+.badge.completed {
+  background: rgba(60,90,60,.12);
+  color: #3c5a3c;
+}
+
+.badge.default {
+  background: rgba(0,0,0,.06);
+  color: #334155;
+}
+
+/* Actions */
+.actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(90,64,50,0.12);
+  flex-wrap: wrap;
+}
+
+.actions-bar .btn,
+.actions-bar .btn-danger {
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Primary */
+.actions-bar .btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
+
+.actions-bar .btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+}
+
+/* Danger */
+.btn-danger {
+  background: #d65c5c;
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 16px rgba(214,92,92,.28);
+}
+
+.btn-danger:hover {
+  background: #bf4b4b;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(214,92,92,.38);
+}
 </style>
 {% endblock %}
 
 {% block content %}
 
 <article>
+
+  <!-- Header -->
   <header class="record-header">
     <div>
-      <h1 style="margin:0; color:var(--accent-600); font-size:24px; font-weight:800;">Record #{{ record.id }}</h1>
-      <div class="muted" style="font-size:13px; margin-top:4px;">Created on {{ record.date }}</div>
+      <h1 style="margin:0;font-size:24px;font-weight:800;color:var(--accent-600);">
+        Record #{{ record.id }}
+      </h1>
+      <div class="muted" style="font-size:13px;margin-top:4px;">
+        Created on {{ record.date }}
+      </div>
     </div>
 
     <div>
       {% if record.status|lower == "pending" %}
-        <span class="badge pending">Pending Approval</span>
+        <span class="badge pending">Pending</span>
       {% elif record.status|lower == "completed" %}
         <span class="badge completed">Completed</span>
       {% else %}
@@ -118,8 +151,9 @@
     </div>
   </header>
 
+  <!-- Details -->
   <section class="detail-grid">
-    
+
     <div class="field-group">
       <span class="field-label">Location</span>
       <span class="field-value highlight">{{ record.location }}</span>
@@ -131,7 +165,7 @@
     </div>
 
     <div class="field-group">
-      <span class="field-label">Item Details</span>
+      <span class="field-label">Item</span>
       <span class="field-value">{{ record.item.item_name }}</span>
     </div>
 
@@ -141,28 +175,47 @@
     </div>
 
     <div class="field-group">
-      <span class="field-label">Record Date</span>
-      <span class="field-value">{{ record.date }}</span>
+      <span class="field-label">Unit</span>
+      <span class="field-value">{{ record.item.unit }}</span>
     </div>
-    
+
+    <div class="field-group">
+      <span class="field-label">Unit Price</span>
+      <span class="field-value">₹ {{ record.item.unit_price }}</span>
+    </div>
+
+    <div class="field-group">
+      <span class="field-label">Total Amount</span>
+      <span class="field-value highlight">₹ {{ total_amount }}</span>
+    </div>
+
     <div class="field-group">
       <span class="field-label">System ID</span>
-      <span class="field-value" style="font-family:monospace; color:var(--muted);">{{ record.id }}</span>
+      <span class="field-value" style="font-family:monospace;color:var(--muted);">
+        {{ record.id }}
+      </span>
     </div>
 
   </section>
 
+  <!-- Actions -->
   <footer class="actions-bar">
     <a class="btn ghost" href="{% url 'show_all_records' %}">← Back to list</a>
 
-    <div style="flex-grow:1"></div> {% if is_admin %}
+    <div style="flex-grow:1"></div>
+
+    {% if is_admin %}
       {% if record.status|lower != "completed" %}
-      <form method="post" action="{% url 'mark_completed' record.pk %}" style="display:inline">{% csrf_token %}
-        <button type="submit" class="btn primary">Mark as Completed</button>
-      </form>
+        <form method="post" action="{% url 'mark_completed' record.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn primary">Mark as Completed</button>
+        </form>
       {% endif %}
 
-      <form method="post" action="{% url 'delete_record' record.pk %}" style="display:inline" onsubmit="return confirm('Are you sure you want to permanently delete this record?');">{% csrf_token %}
+      <form method="post"
+            action="{% url 'delete_record' record.pk %}"
+            onsubmit="return confirm('Are you sure you want to permanently delete this record?');">
+        {% csrf_token %}
         <button type="submit" class="btn-danger">Delete Record</button>
       </form>
     {% endif %}

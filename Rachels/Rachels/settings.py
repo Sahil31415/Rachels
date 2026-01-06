@@ -68,7 +68,7 @@ TEMPLATES = [
     },
 ]
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.131.93']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.132.64']
 
 WSGI_APPLICATION = 'Rachels.wsgi.application'
 

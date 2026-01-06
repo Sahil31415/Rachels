@@ -4,280 +4,276 @@
 
 {% block head %}
 <style>
-  /* --- Add Record Premium Styles --- */
-  
+/* ===============================
+   ADD RECORD – STABLE FINAL UI
+   =============================== */
+
+.form-container {
+  max-width: 1080px;
+  margin: 48px auto;
+  background: #fffaf4;
+  padding: 56px;
+  border-radius: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.05);
+}
+
+/* Header */
+.form-header {
+  margin-bottom: 40px;
+}
+
+.form-header h2 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.form-header p {
+  font-size: 15px;
+  color: #6b6b6b;
+}
+
+/* Labels */
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8a5a44;
+}
+
+/* Inputs (force consistency) */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  width: 100%;
+  height: 50px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid #e7ded6;
+  background: #fff;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #b46a3c;
+  box-shadow: 0 0 0 3px rgba(180,106,60,0.15);
+}
+
+/* Force nice select styling (IMPORTANT FIX) */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a5a44' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px;
+  padding-right: 44px;
+}
+
+/* Readonly */
+input[readonly] {
+  background: #f6f1ec;
+  font-weight: 600;
+  color: #6f6f6f;
+}
+
+/* Top grid */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  margin-bottom: 36px;
+}
+
+/* Items wrapper */
+.items-wrapper {
+  background: #fff;
+  border-radius: 22px;
+  padding: 26px;
+  border: 1px solid #eee5dc;
+}
+
+/* Item row */
+.item-row {
+  display: grid;
+  grid-template-columns:
+    1.6fr
+    1.6fr
+    0.9fr
+    0.9fr
+    1fr
+    1.2fr
+    46px;
+  gap: 14px;
+  align-items: center;
+  padding: 18px;
+  border-radius: 18px;
+  background: #fffaf6;
+  border: 1px solid #f1e7de;
+  margin-bottom: 16px;
+}
+
+.qty,
+.price,
+.total {
+  text-align: right;
+}
+
+.total {
+  background: #f3ece6;
+  font-weight: 800;
+}
+
+/* Remove */
+.btn-remove {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid #e8c8bb;
+  background: #fff;
+  color: #b5483a;
+  cursor: pointer;
+}
+
+.btn-remove:hover {
+  background: #b5483a;
+  color: #fff;
+}
+
+/* Add row */
+.btn-add-row {
+  width: 100%;
+  padding: 18px;
+  margin-top: 14px;
+  border-radius: 16px;
+  border: 2px dashed #e6d6c8;
+  background: #fffaf4;
+  font-weight: 700;
+  color: #8a5a44;
+  cursor: pointer;
+}
+
+.btn-add-row:hover {
+  background: #f7efe8;
+}
+
+/* Footer buttons — HARD FIX */
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid #eee5dc;
+}
+
+.form-actions .btn,
+.form-actions a.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-radius: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
   .form-container {
-    max-width: 840px;
-    margin: 40px auto;
-    background: var(--page);
-    padding: 48px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(90, 64, 50, 0.08); 
+    padding: 32px 24px;
   }
 
-  /* Header */
-  .form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
-  }
-  
-  .header-content h2 { margin: 0 0 6px 0; color: var(--accent-600); font-size: 26px; font-weight: 800; }
-  .header-content p { margin: 0; color: var(--muted); font-size: 14px; }
-
-  .manager-badge {
-    background: linear-gradient(135deg, var(--accent), var(--accent-600));
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    box-shadow: 0 4px 10px rgba(90, 64, 50, 0.15);
-  }
-
-  /* Form Layouts */
   .form-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 36px;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
-
-  /* Inputs & Selects */
-  .form-control {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(90, 64, 50, 0.15);
-    background: #fff;
-    font-size: 15px;
-    color: var(--text);
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-    font-family: inherit;
-    box-shadow: 0 2px 4px rgba(90, 64, 50, 0.02); /* Subtle depth */
-  }
-
-  .form-control:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
-    transform: translateY(-1px);
-  }
-
-  /* Custom Select Arrow styling */
-  select.form-control {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235A4032' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 16px;
-    padding-right: 40px;
-  }
-
-  .form-control[readonly] {
-    background: rgba(90, 64, 50, 0.05);
-    color: var(--muted);
-    border-color: transparent;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  /* Item Rows Container */
-  .items-wrapper {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(90, 64, 50, 0.08);
-    border-radius: 16px;
-    padding: 24px;
+    grid-template-columns: 1fr;
   }
 
   .item-row {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 48px; /* Vendor | Item | Qty | Del */
-    gap: 16px;
-    margin-bottom: 16px;
-    align-items: center;
-    animation: slideDown 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    grid-template-columns: 1fr;
   }
 
-  /* Delete Button (Icon) */
-  .btn-remove {
-    width: 48px;
-    height: 48px; /* Matches input height */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    color: #a63a2e;
-    border: 1px solid rgba(181, 90, 72, 0.2);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-remove:hover {
-    background: #a63a2e;
-    color: white;
-    box-shadow: 0 4px 10px rgba(166, 58, 46, 0.2);
-    transform: rotate(90deg); /* Playful rotation on hover */
-  }
-
-  /* Add Button (Dashed Area) */
-  .btn-add-row {
-    width: 100%;
-    padding: 14px;
-    border: 2px dashed rgba(90, 64, 50, 0.15);
-    background: transparent;
-    color: var(--accent);
-    font-weight: 700;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-add-row:hover {
-    background: rgba(90, 64, 50, 0.05);
-    border-color: var(--accent);
-    transform: translateY(-1px);
-  }
-
-  /* Actions Footer */
   .form-actions {
-    display: flex;
-    gap: 16px;
-    margin-top: 32px;
-    padding-top: 24px;
-    border-top: 1px solid rgba(90, 64, 50, 0.1);
+    grid-template-columns: 1fr;
   }
-  .form-actions .btn { flex: 1; justify-content: center; padding: 14px; }
-
-  /* Mobile */
-  @media (max-width: 680px) {
-    .form-grid-2 { grid-template-columns: 1fr; gap: 16px; }
-    .item-row {
-      grid-template-columns: 1fr;
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(90,64,50,0.1);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-      position: relative;
-    }
-    .btn-remove {
-      position: absolute; top: 12px; right: 12px;
-      width: 32px; height: 32px;
-      border: none; background: rgba(166, 58, 46, 0.1);
-    }
-    .btn-remove svg { width: 16px; height: 16px; }
-    .items-wrapper { padding: 16px; background: transparent; border: none; }
-  }
-
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="form-container">
-  
+
   <div class="form-header">
-    <div class="header-content">
-      <h2>Add New Record</h2>
-      <p>Log items received for a specific date and location.</p>
-    </div>
-    {% if manager_location %}
-      <div class="manager-badge">
-        {{ manager_location }}
-      </div>
-    {% endif %}
+    <h2>Add New Record</h2>
+    <p>Log items received with automatic cost calculation.</p>
   </div>
 
-  <form id="recordForm" method="post" action="{% url 'add_record' %}">
+  <form method="post">
     {% csrf_token %}
-    
+
     <div class="form-grid-2">
       <div>
         <label>Date Received</label>
-        {{ form.date }} 
+        {{ form.date }}
       </div>
+
       <div>
         <label>Location</label>
         {% if is_admin %}
           {{ form.location }}
         {% else %}
-          <input type="text" class="form-control" value="{{ manager_location }}" readonly />
+          <input value="{{ manager_location }}" readonly>
           <input type="hidden" name="location" value="{{ manager_location }}">
         {% endif %}
       </div>
     </div>
 
-    <div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
-        <label style="margin:0;">Item Requisition Details</label>
-        <span style="font-size:11px; color:var(--muted); font-weight:600;">Vendor &rarr; Item &rarr; Quantity</span>
-      </div>
+    <label style="margin-bottom:12px;">Item Details</label>
 
-      <div class="items-wrapper">
-        <div id="itemsWrap">
-          <div class="item-row">
-            <select name="vendor[]" class="form-control vendor-select" required onchange="populateItemsForRow(this)">
-              <option value="">Select Vendor</option>
-              {% for v in vendors %}
-                <option value="{{ v.id }}">{{ v.name }}</option>
-              {% endfor %}
-            </select>
+    <div class="items-wrapper">
+      <div id="itemsWrap">
 
-            <select name="item[]" class="form-control item-select" required>
-              <option value="">Select Item</option>
-            </select>
+        <div class="item-row">
+          <select name="vendor[]" onchange="populateItems(this)" required>
+            <option value="">Vendor</option>
+            {% for v in vendors %}
+              <option value="{{ v.id }}">{{ v.name }}</option>
+            {% endfor %}
+          </select>
 
-            <input type="number" name="quantity[]" class="form-control" min="1" value="1" placeholder="Qty" required />
+          <select name="item[]" onchange="onItemChange(this)" required>
+            <option value="">Item</option>
+          </select>
 
-            <button type="button" class="btn-remove" onclick="removeItemRow(this)" title="Remove item">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
-          </div>
+          <input type="number" name="quantity[]" class="qty" min="1" value="1" oninput="recalc(this)">
+
+          <input type="text" class="unit" placeholder="Unit" readonly>
+
+          <input type="number"
+                 class="price"
+                 step="0.01"
+                 {% if not is_admin %}readonly{% endif %}
+                 oninput="recalc(this)">
+
+          <input type="text" class="total" readonly>
+
+          <button type="button" class="btn-remove" onclick="removeRow(this)">🗑</button>
         </div>
 
-        <button type="button" id="addRowBtn" class="btn-add-row">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Another Item
-        </button>
       </div>
+
+      <button type="button" class="btn-add-row" onclick="addRow()">＋ Add Another Item</button>
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn primary">Save Record</button>
-      <a href="{% url 'Home' %}" class="btn ghost">Cancel</a>
+      <button class="btn primary" type="submit">Save Record</button>
+      <a class="btn ghost" href="{% url 'show_all_records' %}">Cancel</a>
     </div>
 
   </form>
@@ -286,103 +282,61 @@
 
 {% block scripts %}
 <script>
-  // 1. Build Data Map
-  const vendorItems = {
-    {% for vendor in vendors %}
-      "{{ vendor.id }}": [
-        {% for item in vendor.items.all %}
-          { "id": "{{ item.id }}", "name": "{{ item.item_name|escapejs }}" }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ]{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  };
+const vendorItems = {
+  {% for vendor in vendors %}
+    "{{ vendor.id }}": [
+      {% for item in vendor.items.all %}
+        {
+          id: "{{ item.id }}",
+          name: "{{ item.item_name|escapejs }}",
+          unit: "{{ item.unit }}",
+          price: {{ item.unit_price }}
+        }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]{% if not forloop.last %},{% endif %}
+  {% endfor %}
+};
 
-  // 2. Populate Logic
-  function populateItemsForRow(selectVendorEl) {
-    const vendorId = selectVendorEl.value;
-    const row = selectVendorEl.closest('.item-row');
-    const itemSelect = row.querySelector('.item-select');
-    
-    // Clear and add placeholder
-    itemSelect.innerHTML = '<option value="">Select Item</option>';
-    
-    if (vendorId && vendorItems[vendorId]) {
-      vendorItems[vendorId].forEach(it => {
-        const opt = document.createElement('option');
-        opt.value = it.id;
-        opt.textContent = it.name;
-        itemSelect.appendChild(opt);
-      });
-      // Visual flair: flash the item select to show it updated
-      itemSelect.style.borderColor = 'var(--accent)';
-      setTimeout(() => itemSelect.style.borderColor = '', 300);
-    }
-  }
-
-  // 3. Remove Logic
-  function removeItemRow(btn) {
-    const wrap = document.getElementById('itemsWrap');
-    const rows = wrap.querySelectorAll('.item-row');
-    
-    // Prevent removing the last row, just clear it
-    if (rows.length <= 1) {
-      const row = btn.closest('.item-row');
-      row.querySelector('.vendor-select').value = '';
-      row.querySelector('.item-select').innerHTML = '<option value="">Select Item</option>';
-      row.querySelector('input[name="quantity[]"]').value = 1;
-      return;
-    }
-    
-    // Animate out
-    const row = btn.closest('.item-row');
-    row.style.opacity = '0';
-    row.style.transform = 'scale(0.95)';
-    setTimeout(() => row.remove(), 200);
-  }
-
-  // 4. Add Row Logic
-  document.getElementById('addRowBtn').addEventListener('click', function(){
-    const wrap = document.getElementById('itemsWrap');
-    const div = document.createElement('div');
-    div.className = 'item-row';
-    
-    div.innerHTML = `
-      <select name="vendor[]" class="form-control vendor-select" required onchange="populateItemsForRow(this)">
-        <option value="">Select Vendor</option>
-        {% for v in vendors %}
-          <option value="{{ v.id }}">{{ v.name }}</option>
-        {% endfor %}
-      </select>
-
-      <select name="item[]" class="form-control item-select" required>
-        <option value="">Select Item</option>
-      </select>
-
-      <input type="number" name="quantity[]" class="form-control" min="1" value="1" placeholder="Qty" required />
-
-      <button type="button" class="btn-remove" onclick="removeItemRow(this)" title="Remove item">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          <line x1="10" y1="11" x2="10" y2="17"></line>
-          <line x1="14" y1="11" x2="14" y2="17"></line>
-        </svg>
-      </button>
-    `;
-    wrap.appendChild(div);
+function populateItems(sel) {
+  const row = sel.closest(".item-row");
+  const itemSel = row.querySelector('select[name="item[]"]');
+  itemSel.innerHTML = '<option value="">Item</option>';
+  (vendorItems[sel.value] || []).forEach(i => {
+    const opt = document.createElement("option");
+    opt.value = i.id;
+    opt.textContent = i.name;
+    itemSel.appendChild(opt);
   });
-  
-  // 5. Init Scripts to ensure styling applies to Django fields
-  document.addEventListener('DOMContentLoaded', function() {
-    // Add class 'form-control' to Django-rendered inputs if they don't have it
-    const dateInput = document.querySelector('input[name="date"]');
-    if(dateInput) {
-        dateInput.classList.add('form-control');
-        dateInput.type = 'date'; // Force date picker
-    }
-    
-    const locInput = document.querySelector('select[name="location"]');
-    if(locInput) locInput.classList.add('form-control');
-  });
+}
+
+function onItemChange(sel) {
+  const row = sel.closest(".item-row");
+  const vendorId = row.querySelector('select[name="vendor[]"]').value;
+  const item = (vendorItems[vendorId] || []).find(i => i.id === sel.value);
+  if (!item) return;
+  row.querySelector(".unit").value = item.unit;
+  row.querySelector(".price").value = item.price;
+  recalc(row.querySelector(".qty"));
+}
+
+function recalc(el) {
+  const row = el.closest(".item-row");
+  const qty = parseFloat(row.querySelector(".qty").value) || 0;
+  const price = parseFloat(row.querySelector(".price").value) || 0;
+  row.querySelector(".total").value = qty && price ? "₹ " + (qty * price).toFixed(2) : "";
+}
+
+function addRow() {
+  const wrap = document.getElementById("itemsWrap");
+  const clone = wrap.children[0].cloneNode(true);
+  clone.querySelectorAll("input").forEach(i => i.value = "");
+  clone.querySelector('select[name="item[]"]').innerHTML = '<option value="">Item</option>';
+  wrap.appendChild(clone);
+}
+
+function removeRow(btn) {
+  const wrap = document.getElementById("itemsWrap");
+  if (wrap.children.length > 1) btn.closest(".item-row").remove();
+}
 </script>
 {% endblock %}

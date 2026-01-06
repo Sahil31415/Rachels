@@ -4,38 +4,39 @@
 
 {% block head %}
 <style>
-  /* --- Add Vendor Premium Styles --- */
-  
+  /* ===============================
+     ADD VENDOR – CLEAN & FIXED UI
+     =============================== */
+
   .form-container {
-    max-width: 680px;
+    max-width: 720px;
     margin: 40px auto;
     background: var(--page);
     padding: 48px;
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(90, 64, 50, 0.08); 
+    border: 1px solid rgba(90, 64, 50, 0.08);
   }
 
   /* Header */
   .form-header {
-    margin-bottom: 32px;
     text-align: center;
+    margin-bottom: 36px;
   }
-  
+
   .form-header h2 {
-    margin: 0 0 8px 0;
+    margin: 0 0 6px;
     color: var(--accent-600);
     font-size: 26px;
     font-weight: 800;
   }
-  
+
   .form-header p {
-    color: var(--muted);
-    font-size: 14px;
     margin: 0;
+    font-size: 14px;
+    color: var(--muted);
   }
 
-  /* Inputs */
   label {
     display: block;
     margin-bottom: 8px;
@@ -46,10 +47,11 @@
     color: var(--accent);
   }
 
-  /* Match Add Record Input Style */
-  input[type="text"] {
+  /* Inputs */
+  .form-control {
     width: 100%;
-    padding: 14px 16px;
+    height: 48px;
+    padding: 12px 14px;
     border-radius: 12px;
     border: 1px solid rgba(90, 64, 50, 0.15);
     background: #fff;
@@ -58,14 +60,12 @@
     transition: all 0.2s ease;
     box-sizing: border-box;
     font-family: inherit;
-    box-shadow: 0 2px 4px rgba(90, 64, 50, 0.02);
   }
 
-  input[type="text"]:focus {
+  .form-control:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.12);
   }
 
   /* Items Wrapper */
@@ -74,123 +74,158 @@
     border: 1px solid rgba(90, 64, 50, 0.08);
     border-radius: 16px;
     padding: 24px;
-    margin-top: 8px;
   }
 
-  /* Dynamic Row Grid */
+  /* Item Row */
   .item-row {
     display: grid;
-    grid-template-columns: 1fr 48px; /* Input | Delete Button */
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: 2.2fr 1.1fr 1.1fr 48px;
+    gap: 14px;
+    margin-bottom: 14px;
     align-items: center;
-    animation: slideDown 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: slideDown 0.25s ease;
   }
 
-  /* Delete Button (Icon Style) */
+  .item-row input[type="number"] {
+    text-align: right;
+  }
+
+  /* Remove button */
   .btn-remove {
     width: 48px;
-    height: 48px; /* Matches input height */
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid rgba(181, 90, 72, 0.25);
+    background: #fff;
+    color: #a63a2e;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    color: #a63a2e;
-    border: 1px solid rgba(181, 90, 72, 0.2);
-    border-radius: 12px;
-    cursor: pointer;
     transition: all 0.2s;
   }
+
   .btn-remove:hover {
     background: #a63a2e;
-    color: white;
-    box-shadow: 0 4px 10px rgba(166, 58, 46, 0.2);
+    color: #fff;
     transform: rotate(90deg);
   }
 
-  /* Add Button (Dashed) */
+  /* Add row button */
   .btn-add-row {
     width: 100%;
+    margin-top: 10px;
     padding: 14px;
-    border: 2px dashed rgba(90, 64, 50, 0.15);
+    border-radius: 12px;
+    border: 2px dashed rgba(90, 64, 50, 0.2);
     background: transparent;
     color: var(--accent);
     font-weight: 700;
-    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
   }
+
   .btn-add-row:hover {
     background: rgba(90, 64, 50, 0.05);
     border-color: var(--accent);
-    transform: translateY(-1px);
   }
 
-  /* Actions */
+  /* Footer actions */
   .form-actions {
     display: flex;
     gap: 16px;
-    margin-top: 32px;
+    margin-top: 36px;
     padding-top: 24px;
     border-top: 1px solid rgba(90, 64, 50, 0.1);
   }
-  .form-actions .btn { flex: 1; justify-content: center; padding: 14px; }
+
+  .form-actions .btn {
+    flex: 1;
+    padding: 14px;
+    justify-content: center;
+  }
+
+  /* Mobile */
+  @media (max-width: 680px) {
+    .item-row {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(90,64,50,0.1);
+      background: #fff;
+      position: relative;
+    }
+
+    .btn-remove {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+    }
+  }
 
   @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-
 <main class="form-container">
-  
+
   <div class="form-header">
     <h2>Add New Vendor</h2>
-    <p>Define the vendor details and the specific items they supply.</p>
+    <p>Define vendor items along with unit and unit price.</p>
   </div>
 
   <form method="post">
     {% csrf_token %}
-    
+
     <div style="margin-bottom:32px;">
-      <label for="{{ form.name.id_for_label }}">Vendor Name</label>
+      <label>Vendor Name</label>
       {{ form.name }}
     </div>
 
-    <div>
-      <label style="margin-bottom:12px;">Items Provided</label>
-      
-      <div class="items-wrapper">
-        <div id="itemsWrap">
-          <div class="item-row">
-            <input type="text" name="items[]" placeholder="e.g. Fresh Milk" required />
-            
-            <button type="button" class="btn-remove" onclick="removeItem(this)" title="Remove item">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
-          </div>
+    <label style="margin-bottom:12px;">Items Provided</label>
+
+    <div class="items-wrapper">
+      <div id="itemsWrap">
+
+        <div class="item-row">
+          <input type="text"
+                 name="items[]"
+                 class="form-control"
+                 placeholder="Item name"
+                 required
+                 oninput="autoSetUnit(this)">
+
+          <select name="units[]" class="form-control">
+            <option value="kg">Kg</option>
+            <option value="g">Gram</option>
+            <option value="l">Litre</option>
+            <option value="ml">ML</option>
+            <option value="pcs">Pieces</option>
+            <option value="carton">Carton</option>
+            <option value="packet">Packet</option>
+          </select>
+
+          <input type="number"
+                 name="prices[]"
+                 class="form-control"
+                 placeholder="Unit price"
+                 step="0.01"
+                 min="0"
+                 required>
+
+          <button type="button" class="btn-remove" onclick="removeItem(this)">🗑</button>
         </div>
 
-        <button type="button" onclick="addItem()" class="btn-add-row">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Another Item
-        </button>
       </div>
+
+      <button type="button" class="btn-add-row" onclick="addItem()">＋ Add Another Item</button>
     </div>
 
     <div class="form-actions">
@@ -200,48 +235,54 @@
 
   </form>
 </main>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-  function addItem(){
-    const wrap = document.getElementById('itemsWrap');
-    const div = document.createElement('div');
-    div.className = 'item-row';
-    
-    // Use the exact same SVG icon structure
-    div.innerHTML = `
-      <input type="text" name="items[]" placeholder="Item name" required />
-      <button type="button" class="btn-remove" onclick="removeItem(this)" title="Remove item">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          <line x1="10" y1="11" x2="10" y2="17"></line>
-          <line x1="14" y1="11" x2="14" y2="17"></line>
-        </svg>
-      </button>
-    `;
-    wrap.appendChild(div);
-    
-    // Auto-focus the new input
-    div.querySelector('input').focus();
+  function guessUnit(name) {
+    name = name.toLowerCase();
+    if (name.match(/milk|oil|juice|water/)) return "l";
+    if (name.match(/flour|atta|maida|rice|wheat|sugar|tomato|onion|potato/)) return "kg";
+    if (name.match(/egg|bun|piece/)) return "pcs";
+    if (name.match(/packet|pack/)) return "packet";
+    if (name.match(/carton|box/)) return "carton";
+    return "kg";
   }
 
-  function removeItem(btn){
-    const row = btn.parentElement;
-    
-    // If it's the last row, clear it instead of removing
-    const wrap = document.getElementById('itemsWrap');
-    if (wrap.children.length <= 1) {
-       row.querySelector('input').value = '';
-       return;
-    }
+  function autoSetUnit(input) {
+    const row = input.closest(".item-row");
+    row.querySelector("select[name='units[]']").value = guessUnit(input.value);
+  }
 
-    // Add a quick fade out effect before removing
-    row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
-    setTimeout(() => row.remove(), 200);
+  function addItem() {
+    const wrap = document.getElementById("itemsWrap");
+    const div = document.createElement("div");
+    div.className = "item-row";
+    div.innerHTML = `
+      <input type="text" name="items[]" class="form-control" placeholder="Item name" required oninput="autoSetUnit(this)">
+      <select name="units[]" class="form-control">
+        <option value="kg">Kg</option>
+        <option value="g">Gram</option>
+        <option value="l">Litre</option>
+        <option value="ml">ML</option>
+        <option value="pcs">Pieces</option>
+        <option value="carton">Carton</option>
+        <option value="packet">Packet</option>
+      </select>
+      <input type="number" name="prices[]" class="form-control" placeholder="Unit price" step="0.01" min="0" required>
+      <button type="button" class="btn-remove" onclick="removeItem(this)">🗑</button>
+    `;
+    wrap.appendChild(div);
+    div.querySelector("input").focus();
+  }
+
+  function removeItem(btn) {
+    const wrap = document.getElementById("itemsWrap");
+    if (wrap.children.length <= 1) {
+      wrap.children[0].querySelectorAll("input").forEach(i => i.value = "");
+      return;
+    }
+    btn.closest(".item-row").remove();
   }
 </script>
 {% endblock %}

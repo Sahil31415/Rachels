@@ -1,5 +1,5 @@
 from django import forms
-from .models import Record, VendorItem, Vendor, AdvanceSalary
+from .models import Record, Vendor, AdvanceSalary
 
 class RecordForm(forms.ModelForm):
     LOCATION_CHOICES = [
@@ -14,30 +14,27 @@ class RecordForm(forms.ModelForm):
 
     class Meta:
         model = Record
-        fields = ["date", "location", "vendor", "item", "quantity"]
+        fields = ["date", "location"]
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
-            "quantity": forms.NumberInput(attrs={"min": 1}),
+            "date": forms.DateInput(attrs={
+                "type": "date",
+                "class": "form-control"
+            }),
+            "location": forms.Select(attrs={
+                "class": "form-control"
+            })
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields["item"].queryset = VendorItem.objects.none()
-
-        if "vendor" in self.data:
-            try:
-                vendor_id = int(self.data.get("vendor"))
-                self.fields["item"].queryset = VendorItem.objects.filter(vendor_id=vendor_id)
-            except:
-                pass
-        elif self.instance.pk and self.instance.vendor:
-            self.fields["item"].queryset = self.instance.vendor.items.all()
 
 class VendorForm(forms.ModelForm):
     class Meta:
         model = Vendor
         fields = ["name"]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Vendor name"
+            })
+        }
 
 class AdvanceSalaryForm(forms.ModelForm):
     class Meta:

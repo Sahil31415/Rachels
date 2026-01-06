@@ -1,7 +1,6 @@
 # views.py
 from datetime import datetime, date
 import csv
-
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -10,66 +9,35 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.core.paginator import Paginator
-
 from .forms import AdvanceSalaryForm, RecordForm, VendorForm
 from .models import AdvanceSalary, Record, Vendor, VendorItem
 
-
-# ------------------------
-# Helper utilities
-# ------------------------
 def _normalize_location_for_group(loc):
-    """
-    Normalizes a location string to a group fragment.
-    e.g. "Pours and Plates" -> "pours_and_plates"
-    """
     if not loc:
         return ""
     return ''.join(ch.lower() if ch.isalnum() else '_' for ch in loc).strip('_')
 
-
 def user_is_admin(user):
     return user.is_authenticated and user.is_superuser
 
-
 def user_in_manager_group_for_location(user, location):
-    """
-    Returns True when the user belongs to a group named
-    manager_<normalized_location>.
-    e.g. manager_dulari, manager_pours_and_plates, manager_rachels1
-    """
     if not user.is_authenticated:
         return False
     grp_name = f"manager_{_normalize_location_for_group(location)}"
     return user.groups.filter(name=grp_name).exists()
 
-
 def user_can_view_location(user, location):
-    """
-    Admin sees everything. Managers see only their assigned location.
-    """
     if not user.is_authenticated:
         return False
     if user.is_superuser:
         return True
     return user_in_manager_group_for_location(user, location)
 
-
 def admin_required(view_func):
-    """ Shortcut decorator for admin-only views """
     return user_passes_test(user_is_admin)(view_func)
 
-
-# ------------------------
-# Dashboard / Home
-# ------------------------
 @login_required
 def home(request):
-    """
-    Dashboard — show totals, top orders and per-location cards.
-    Managers will only see the locations they are allowed to; admin sees all.
-    """
-    # detect whether model has a 'status' field
     field_names = [f.name for f in Record._meta.fields]
     has_status = 'status' in field_names
 
@@ -137,10 +105,6 @@ def home(request):
     }
     return render(request, "home.html", context)
 
-
-# ------------------------
-# All records listing (with filters + pagination)
-# ------------------------
 @login_required
 def show_all_records(request):
     qs = Record.objects.all().order_by('-date', '-id')
@@ -196,16 +160,25 @@ def show_all_records(request):
     }
     return render(request, 'DisplayRecord.html', context)
 
-# ------------------------
-# Record detail + admin actions
-# ------------------------
 @login_required
 def record_detail(request, pk):
     record = get_object_or_404(Record, pk=pk)
+
     if not user_can_view_location(request.user, record.location):
         return HttpResponseForbidden("You don't have permission to view this record.")
-    return render(request, "record_detail.html", {"record": record})
 
+    # Safe total calculation
+    total_amount = 0
+    if record.item and record.item.unit_price:
+        total_amount = record.quantity * record.item.unit_price
+
+    context = {
+        "record": record,
+        "total_amount": total_amount,
+        "is_admin": request.user.is_superuser,
+    }
+
+    return render(request, "record_detail.html", context)
 
 @admin_required
 def mark_completed(request, pk):
@@ -217,7 +190,6 @@ def mark_completed(request, pk):
         return redirect('show_all_records')
     return redirect('record_detail', pk=pk)
 
-
 @admin_required
 def delete_record(request, pk):
     record = get_object_or_404(Record, pk=pk)
@@ -227,10 +199,6 @@ def delete_record(request, pk):
         return redirect('show_all_records')
     return render(request, "delete_record.html", {"record": record})
 
-
-# ------------------------
-# CSV export
-# ------------------------
 def _parse_date(s):
     if not s:
         return None
@@ -238,7 +206,6 @@ def _parse_date(s):
         return datetime.strptime(s, "%Y-%m-%d").date()
     except ValueError:
         return None
-
 
 @login_required
 def export_form(request):
@@ -249,7 +216,6 @@ def export_form(request):
         'status': request.GET.get('status', ''),
     }
     return render(request, "export_records.html", {'initial': initial})
-
 
 @login_required
 def export_csv(request):
@@ -293,36 +259,37 @@ def export_csv(request):
         ])
     return response
 
-
-# ------------------------
-# Vendor management
-# ------------------------
 @login_required
 def add_vendor(request):
-    """
-    Add vendor and items. If you want to restrict vendor creation to admin
-    only, decorate with @admin_required.
-    """
     if request.method == "POST":
         form = VendorForm(request.POST)
+
         items = request.POST.getlist("items[]")
+        units = request.POST.getlist("units[]")
+        prices = request.POST.getlist("prices[]")
+
         if form.is_valid() and items:
             vendor = form.save()
-            for item in items:
-                if item.strip():
-                    VendorItem.objects.create(vendor=vendor, item_name=item.strip())
-            messages.success(request, "Vendor saved.")
+
+            for name, unit, price in zip(items, units, prices):
+                if name.strip() and unit and price:
+                    VendorItem.objects.create(
+                        vendor=vendor,
+                        item_name=name.strip(),
+                        unit=unit,
+                        unit_price=price
+                    )
+
+            messages.success(request, "Vendor and items saved successfully.")
             return redirect("Home")
-        else:
-            messages.error(request, "Provide vendor name and at least one item.")
+
+        messages.error(request, "Please provide vendor name and valid items.")
+
     else:
         form = VendorForm()
+
     return render(request, "add_vendor.html", {"form": form})
 
-
-# ------------------------
-# Advance salaries (admin only)
-# ------------------------
 @admin_required
 def advance_list(request):
     qs = AdvanceSalary.objects.all()
@@ -331,7 +298,6 @@ def advance_list(request):
         "advances": qs,
         "total_given": total_given,
     })
-
 
 @admin_required
 def advance_add(request):
@@ -345,7 +311,6 @@ def advance_add(request):
         form = AdvanceSalaryForm()
     return render(request, "advance_add.html", {"form": form})
 
-
 @admin_required
 def advance_delete(request, pk):
     adv = get_object_or_404(AdvanceSalary, pk=pk)
@@ -355,19 +320,11 @@ def advance_delete(request, pk):
         return redirect("advance_list")
     return render(request, "advance_confirm_delete.html", {"advance": adv})
 
-
-# ------------------------
-# Logout
-# ------------------------
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('login')  # or 'Home' depending on your flow
+    return redirect('login')
 
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
-
-# helper you already conceptually have from the login system
 def _get_manager_location(user):
     if not user.is_authenticated:
         return None
@@ -391,7 +348,6 @@ def add_record(request):
     is_admin = user.is_superuser
     manager_location = _get_manager_location(user)
 
-    # Security: if not admin AND no mapped location, don't allow access
     if not is_admin and not manager_location:
         return HttpResponseForbidden("You are not allowed to add records.")
 
@@ -399,10 +355,8 @@ def add_record(request):
         date = request.POST.get("date")
 
         if is_admin:
-            # Admin may choose any location from form
             location = request.POST.get("location")
         else:
-            # Manager: ignore whatever was posted, force their own branch
             location = manager_location
 
         vendors = request.POST.getlist("vendor[]")
@@ -420,9 +374,8 @@ def add_record(request):
                     status="Pending",
                 )
 
-        return redirect("Home")
+        return redirect("show_all_records")
 
-    # GET: build form + vendor list
     vendors = Vendor.objects.prefetch_related("items")
     form = RecordForm()
 

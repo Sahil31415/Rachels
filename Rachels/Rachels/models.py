@@ -12,11 +12,31 @@ class Vendor(models.Model):
 
 
 class VendorItem(models.Model):
+    UNIT_CHOICES = [
+        ("kg", "Kilogram"),
+        ("g", "Gram"),
+        ("l", "Litre"),
+        ("ml", "Millilitre"),
+        ("pcs", "Pieces"),
+        ("carton", "Carton"),
+        ("packet", "Packet"),
+    ]
+
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="items")
     item_name = models.CharField(max_length=100)
 
+    unit = models.CharField(
+        max_length=20,
+        choices=UNIT_CHOICES,
+        default="kg"
+    )
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
     def __str__(self):
-        return f"{self.vendor.name} - {self.item_name}"
+        return f"{self.vendor.name} - {self.item_name} ({self.unit} @ {self.unit_price})"
 
 
 class Record(models.Model):
@@ -45,7 +65,6 @@ class AdvanceSalary(models.Model):
         return f"{self.employee_name} — {self.amount} on {self.paid_on}"
 
 
-# --- Manager profile (link user -> location) ---
 class ManagerProfile(models.Model):
     LOCATION_CHOICES = [
         ('Dulari', 'Dulari'),
@@ -63,7 +82,6 @@ class ManagerProfile(models.Model):
         return f"{self.user.username} — {self.location or '(no location)'}"
 
 
-# Create ManagerProfile automatically when a User is created (so templates can safely reference)
 @receiver(post_save, sender=User)
 def ensure_manager_profile(sender, instance, created, **kwargs):
     if created:
