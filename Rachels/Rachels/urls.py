@@ -19,7 +19,7 @@ urlpatterns = [
     path('record/<int:pk>/complete/', views.mark_completed, name='mark_completed'),
 
     path('export/', views.export_form, name='export_form'),
-    path('export/csv/', views.export_csv, name='export_csv'),
+    path("export/excel/", views.export_excel, name="export_excel"),
 
     path('vendors/add/', views.add_vendor, name='add_vendor'),
 

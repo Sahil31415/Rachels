@@ -28,7 +28,7 @@
     </div>
   {% endif %}
 
-  <form method="get" action="{% url 'export_csv' %}" style="display:grid;gap:14px;margin-top:14px;max-width:760px">
+  <form method="get" action="{% url 'export_excel' %}" style="display:grid;gap:14px;margin-top:14px;max-width:760px">
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <div style="flex:1;min-width:160px">
         <label for="from_date" style="font-weight:700;color:var(--accent)">From date</label>
@@ -61,7 +61,7 @@
     </div>
 
     <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-      <button type="submit" class="btn primary" style="padding:10px 16px;border-radius:10px;font-weight:800">Download CSV</button>
+      <button type="submit" class="btn primary" style="padding:10px 16px;border-radius:10px;font-weight:800">Download Excel</button>
       <a href="{% url 'export_form' %}" class="btn" style="background:transparent;border:1px solid rgba(11,11,11,0.06)">Reset</a>
       <div style="margin-left:auto;color:var(--muted);font-size:13px">Tip: leave dates empty to export all</div>
     </div>

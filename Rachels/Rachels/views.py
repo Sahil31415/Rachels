@@ -16,6 +16,10 @@ from decimal import Decimal
 from django.http import JsonResponse
 from .models import Notification
 from django.contrib.auth import get_user_model
+from collections import defaultdict
+import openpyxl
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 User = get_user_model()
 
@@ -235,9 +239,9 @@ def export_form(request):
     }
     return render(request, "export_records.html", {'initial': initial})
 
-@login_required
-def export_csv(request):
+def export_excel(request):
     data = request.GET if request.method == "GET" else request.POST
+
     from_date = _parse_date(data.get('from_date', '').strip())
     to_date = _parse_date(data.get('to_date', '').strip())
     location = data.get('location', '').strip()
@@ -247,7 +251,10 @@ def export_csv(request):
         messages.error(request, "From date cannot be after To date.")
         return redirect('export_form')
 
-    qs = Record.objects.all().order_by('date', 'id')
+    qs = Record.objects.select_related(
+        'vendor', 'item'
+    ).order_by('-date', '-id')  # recent first
+
     if from_date:
         qs = qs.filter(date__gte=from_date)
     if to_date:
@@ -257,24 +264,77 @@ def export_csv(request):
     if status:
         qs = qs.filter(status__iexact=status)
 
+    # ---------- GROUP DATA ----------
+    # location -> vendor -> item -> [records]
+    grouped = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(list))
+    )
+
+    for r in qs:
+        loc = r.location or "Unknown"
+        vendor = r.vendor.name if r.vendor else "Unknown Vendor"
+        item = r.item.item_name if r.item else "Unknown Item"
+        grouped[loc][vendor][item].append(r)
+
+    # ---------- CREATE EXCEL ----------
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # remove default sheet
+
+    header = ['Order ID', 'Date', 'Status', 'Quantity']
+    header_font = Font(bold=True)
+
+    for loc, vendors in grouped.items():
+        ws = wb.create_sheet(title=loc[:31])  # Excel sheet name limit
+
+        row = 1
+        ws.cell(row=row, column=1, value=f"Location: {loc}")
+        ws.cell(row=row, column=1).font = Font(bold=True, size=14)
+        row += 2
+
+        for vendor, items in vendors.items():
+            ws.cell(row=row, column=1, value=f"Vendor: {vendor}")
+            ws.cell(row=row, column=1).font = Font(bold=True)
+            row += 1
+
+            for item, records in items.items():
+                ws.cell(row=row, column=1, value=f"Item: {item}")
+                ws.cell(row=row, column=1).font = Font(italic=True)
+                row += 1
+
+                # table header
+                for col, h in enumerate(header, start=1):
+                    cell = ws.cell(row=row, column=col, value=h)
+                    cell.font = header_font
+                row += 1
+
+                for r in records:
+                    ws.append([
+                        r.pk,
+                        r.date.isoformat() if r.date else '',
+                        r.status,
+                        r.quantity,
+                    ])
+                    row += 1
+
+                row += 1  # space after item
+
+            row += 1  # space after vendor
+
+        # autosize columns
+        for col in ws.columns:
+            ws.column_dimensions[get_column_letter(col[0].column)].width = 20
+
     fd = from_date.isoformat() if from_date else timezone.localdate().isoformat()
     td = to_date.isoformat() if to_date else timezone.localdate().isoformat()
-    filename = f"orders-{fd}-{td}.csv"
 
-    response = HttpResponse(content_type='text/csv')
+    filename = f"orders-{fd}-{td}.xlsx"
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    writer = csv.writer(response)
-    writer.writerow(['ID', 'Date', 'Location', 'Status', 'Vendor', 'Item', 'Quantity'])
-    for r in qs:
-        writer.writerow([
-            r.pk,
-            r.date.isoformat() if r.date else '',
-            r.location,
-            r.status,
-            r.vendor.name if r.vendor else '',
-            r.item.item_name if r.item else '',
-            r.quantity,
-        ])
+
+    wb.save(response)
     return response
 
 @login_required
