@@ -50,6 +50,14 @@
   color: var(--accent-600);
 }
 
+.edit-mode {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.15);
+  font-size: 15px;
+  width: 100%;
+}
+
 /* Status badges */
 .badge {
   padding: 8px 18px;
@@ -151,76 +159,174 @@
     </div>
   </header>
 
-  <!-- Details -->
-  <section class="detail-grid">
+  <!-- Editable Details -->
+  <form method="post"
+        action="{% url 'edit_order' record.pk %}"
+        id="editForm">
+    {% csrf_token %}
 
-    <div class="field-group">
-      <span class="field-label">Location</span>
-      <span class="field-value highlight">{{ record.location }}</span>
-    </div>
+    <section class="detail-grid">
 
-    <div class="field-group">
-      <span class="field-label">Vendor</span>
-      <span class="field-value highlight">{{ record.vendor.name }}</span>
-    </div>
+      <div class="field-group">
+        <span class="field-label">Location</span>
+        <span class="field-value highlight">{{ record.location }}</span>
+      </div>
 
-    <div class="field-group">
-      <span class="field-label">Item</span>
-      <span class="field-value">{{ record.item.item_name }}</span>
-    </div>
+      <div class="field-group">
+        <span class="field-label">Vendor</span>
+        <span class="field-value highlight">{{ record.vendor.name }}</span>
+      </div>
 
-    <div class="field-group">
-      <span class="field-label">Quantity</span>
-      <span class="field-value">{{ record.quantity }}</span>
-    </div>
+      <div class="field-group">
+        <span class="field-label">Item</span>
+        <span class="field-value">{{ record.item.item_name }}</span>
+      </div>
 
-    <div class="field-group">
-      <span class="field-label">Unit</span>
-      <span class="field-value">{{ record.item.unit }}</span>
-    </div>
+      <!-- Quantity -->
+      <div class="field-group">
+        <span class="field-label">Quantity</span>
 
-    <div class="field-group">
-      <span class="field-label">Unit Price</span>
-      <span class="field-value">₹ {{ record.item.unit_price }}</span>
-    </div>
+        <span class="field-value view-mode">
+          {{ record.quantity }}
+        </span>
 
-    <div class="field-group">
-      <span class="field-label">Total Amount</span>
-      <span class="field-value highlight">₹ {{ total_amount }}</span>
-    </div>
+        <input type="number"
+               name="quantity"
+               id="quantityInput"
+               min="1"
+               value="{{ record.quantity }}"
+               class="edit-mode"
+               style="display:none;">
+      </div>
 
-    <div class="field-group">
-      <span class="field-label">System ID</span>
-      <span class="field-value" style="font-family:monospace;color:var(--muted);">
-        {{ record.id }}
-      </span>
-    </div>
+      <div class="field-group">
+        <span class="field-label">Unit</span>
+        <span class="field-value">{{ record.item.unit }}</span>
+      </div>
 
-  </section>
+      <!-- Unit Price -->
+      <div class="field-group">
+        <span class="field-label">Unit Price</span>
+
+        <span class="field-value view-mode">
+          ₹ {{ record.item.unit_price }}
+        </span>
+
+        <input type="number"
+               name="unit_price"
+               id="unitPriceInput"
+               step="0.01"
+               value="{{ record.item.unit_price }}"
+               class="edit-mode"
+               style="display:none;">
+      </div>
+
+      <!-- Total -->
+      <div class="field-group">
+        <span class="field-label">Total Amount</span>
+        <span class="field-value highlight" id="totalAmount">
+          ₹ {{ total_amount }}
+        </span>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">System ID</span>
+        <span class="field-value" style="font-family:monospace;color:var(--muted);">
+          {{ record.id }}
+        </span>
+      </div>
+
+    </section>
+  </form>
 
   <!-- Actions -->
   <footer class="actions-bar">
-    <a class="btn ghost" href="{% url 'show_all_records' %}">← Back to list</a>
+    <a class="btn ghost" href="{% url 'show_all_records' %}">
+      ← Back to list
+    </a>
 
     <div style="flex-grow:1"></div>
 
     {% if is_admin %}
+
+      <button type="button"
+              class="btn ghost"
+              id="editBtn"
+              onclick="enableEdit()">
+        Edit Order
+      </button>
+
+      <button type="submit"
+              form="editForm"
+              class="btn primary"
+              id="saveBtn"
+              style="display:none;">
+        Save Changes
+      </button>
+
+      <button type="button"
+              class="btn ghost"
+              id="cancelBtn"
+              style="display:none;"
+              onclick="cancelEdit()">
+        Cancel
+      </button>
+
       {% if record.status|lower != "completed" %}
-        <form method="post" action="{% url 'mark_completed' record.pk %}">
-          {% csrf_token %}
-          <button type="submit" class="btn primary">Mark as Completed</button>
-        </form>
+      <form method="post"
+            action="{% url 'mark_completed' record.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn primary">
+          Mark as Completed
+        </button>
+      </form>
       {% endif %}
 
       <form method="post"
             action="{% url 'delete_record' record.pk %}"
             onsubmit="return confirm('Are you sure you want to permanently delete this record?');">
         {% csrf_token %}
-        <button type="submit" class="btn-danger">Delete Record</button>
+        <button type="submit" class="btn-danger">
+          Delete Record
+        </button>
       </form>
+
     {% endif %}
   </footer>
 
 </article>
+
+<script>
+function enableEdit() {
+  document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
+
+  document.getElementById('editBtn').style.display = 'none';
+  document.getElementById('saveBtn').style.display = 'inline-flex';
+  document.getElementById('cancelBtn').style.display = 'inline-flex';
+
+  calculateTotal();
+}
+
+function cancelEdit() {
+  document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'block');
+
+  document.getElementById('editBtn').style.display = 'inline-flex';
+  document.getElementById('saveBtn').style.display = 'none';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+function calculateTotal() {
+  const qty = parseFloat(document.getElementById('quantityInput').value) || 0;
+  const price = parseFloat(document.getElementById('unitPriceInput').value) || 0;
+  const total = (qty * price).toFixed(2);
+
+  document.getElementById('totalAmount').innerText = `₹ ${total}`;
+}
+
+document.getElementById('quantityInput')?.addEventListener('input', calculateTotal);
+document.getElementById('unitPriceInput')?.addEventListener('input', calculateTotal);
+</script>
 
 {% endblock %}

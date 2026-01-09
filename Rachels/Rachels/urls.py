@@ -28,4 +28,8 @@ urlpatterns = [
     path("advances/add/", views.advance_add, name="advance_add"),
     path("advances/<int:pk>/delete/", views.advance_delete, name="advance_delete"),
     path("advance-salary/", views.advance_list, name="advance_salary_home"),
+    path("records/<int:pk>/edit/", views.edit_order, name="edit_order"),
+    path("notifications/", views.fetch_notifications, name="fetch_notifications"),
+    path("notifications/clear/", views.clear_notifications, name="clear_notifications"),
+    path("notifications/read/<int:pk>/", views.mark_notification_read, name="mark_notification_read"),
 ]

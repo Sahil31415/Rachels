@@ -7,10 +7,17 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Sum
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.core.paginator import Paginator
 from .forms import AdvanceSalaryForm, RecordForm, VendorForm
 from .models import AdvanceSalary, Record, Vendor, VendorItem
+from decimal import Decimal
+from django.http import JsonResponse
+from .models import Notification
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 def _normalize_location_for_group(loc):
     if not loc:
@@ -26,12 +33,17 @@ def user_in_manager_group_for_location(user, location):
     grp_name = f"manager_{_normalize_location_for_group(location)}"
     return user.groups.filter(name=grp_name).exists()
 
-def user_can_view_location(user, location):
-    if not user.is_authenticated:
-        return False
+def user_can_view_location(user, record_location):
+    # Superuser: full access
     if user.is_superuser:
         return True
-    return user_in_manager_group_for_location(user, location)
+
+    # Manager: only their assigned location
+    if hasattr(user, "managerprofile"):
+        return user.managerprofile.location == record_location
+
+    # Default: no access
+    return False
 
 def admin_required(view_func):
     return user_passes_test(user_is_admin)(view_func)
@@ -371,7 +383,7 @@ def add_record(request):
 
         for v, i, q in zip(vendors, items, quantities):
             if v and i and q:
-                Record.objects.create(
+                record = Record.objects.create(
                     date=date,
                     location=location,
                     vendor_id=v,
@@ -379,6 +391,17 @@ def add_record(request):
                     quantity=q,
                     status="Pending",
                 )
+                admins = User.objects.filter(is_superuser=True)
+
+                print(record.pk)
+                
+                for admin in admins:
+                    Notification.objects.create(
+                        recipient=admin,
+                        message=f"New order added (#{record.pk})",
+                        location=record.location,
+                        url=reverse("record_detail", kwargs={"pk": record.pk}),
+                    )
 
         return redirect("show_all_records")
 
@@ -392,3 +415,68 @@ def add_record(request):
         "manager_location": manager_location,
     }
     return render(request, "addRecord.html", context)
+
+@login_required
+def edit_order(request, pk):
+    record = get_object_or_404(Record, pk=pk)
+
+    if not request.user.is_staff:
+        return redirect("record_detail", pk=pk)
+
+    if request.method == "POST":
+        record.quantity = int(request.POST["quantity"])
+        record.item.unit_price = Decimal(request.POST["unit_price"])
+
+        record.item.save()
+        record.save()
+
+        managers = User.objects.filter(
+            managerprofile__location=record.location
+        )
+
+        for manager in managers:
+            Notification.objects.create(
+                recipient=manager,
+                message=f"Order #{record.pk} was updated",
+                location=record.location,
+                url=reverse("record_detail", kwargs={"pk": record.pk}),
+            )
+
+    return redirect("record_detail", pk=pk)
+
+@login_required
+def fetch_notifications(request):
+    qs = request.user.notifications.order_by("-created_at")[:20]
+
+    data = [{
+        "id": n.id,
+        "message": n.message,
+        "location": n.location,           # NEW
+        "url": n.url,                     # NEW (e.g. record detail)
+        "is_read": n.is_read,
+        "created_at": n.created_at.strftime("%d %b, %H:%M")
+    } for n in qs]
+
+
+    unread_count = request.user.notifications.filter(is_read=False).count()
+
+    return JsonResponse({
+        "notifications": data,
+        "unread_count": unread_count
+    })
+
+@login_required
+def clear_notifications(request):
+    request.user.notifications.all().delete()
+    return JsonResponse({"status": "ok"})
+
+@login_required
+def mark_notification_read(request, pk):
+    notification = get_object_or_404(
+        Notification,
+        pk=pk,
+        recipient=request.user
+    )
+    notification.is_read = True
+    notification.save(update_fields=["is_read"])
+    return JsonResponse({"ok": True})

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Edit Record #{{ record.id }}{% endblock %}
+
+{% block content %}
+<article style="max-width:520px;margin:0 auto;">
+
+  <h1 style="margin-bottom:24px;">Edit Record #{{ record.id }}</h1>
+
+  <form method="post" class="card">
+    {% csrf_token %}
+
+    <div class="field-group">
+      <label class="field-label">Quantity</label>
+      <input type="number"
+             name="quantity"
+             min="1"
+             value="{{ record.quantity }}"
+             required
+             class="input">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Unit Price</label>
+      <input type="number"
+             name="unit_price"
+             step="0.01"
+             value="{{ record.item.unit_price }}"
+             required
+             class="input">
+    </div>
+
+    <div class="actions-bar">
+      <a href="{% url 'record_detail' record.pk %}" class="btn ghost">Cancel</a>
+      <button type="submit" class="btn primary">Save Changes</button>
+    </div>
+  </form>
+
+</article>
+{% endblock %}
