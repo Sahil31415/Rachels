@@ -540,3 +540,27 @@ def mark_notification_read(request, pk):
     notification.is_read = True
     notification.save(update_fields=["is_read"])
     return JsonResponse({"ok": True})
+
+def inventory_overview(request):
+    qs = (
+        Record.objects
+        .filter(
+            status="Completed",
+            item__isnull=False
+        )
+        .values(
+            "location",
+            "item__item_name"
+        )
+        .annotate(total_quantity=Sum("quantity"))
+        .order_by("location", "item__item_name")
+    )
+
+    inventory_by_store = defaultdict(list)
+
+    for row in qs:
+        inventory_by_store[row["location"]].append(row)
+
+    return render(request, "inventory_overview.html", {
+        "inventory_by_store": dict(inventory_by_store)
+    })

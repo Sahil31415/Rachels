@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory Overview{% endblock %}
+
+{% block content %}
+<h1>Inventory Overview</h1>
+
+{% for store, items in inventory_by_store.items %}
+    <h2 style="margin-top: 30px;">
+        Store: {{ store }}
+    </h2>
+
+    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+        <thead style="background:#f0f0f0;">
+            <tr>
+                <th>Item</th>
+                <th>Total Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in items %}
+            <tr>
+                <td>{{ row.item__item_name }}</td>
+                <td><strong>{{ row.total_quantity }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+
+{% if not inventory_by_store %}
+<p>No inventory available.</p>
+{% endif %}
+
+{% endblock %}

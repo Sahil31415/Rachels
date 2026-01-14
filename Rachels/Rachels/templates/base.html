@@ -301,6 +301,7 @@
       {% if user.is_superuser %}
         <a href="{% url 'add_vendor' %}" class="btn">Add Vendor</a>
         <a href="{% url 'advance_list' %}" class="btn">Advance Salaries</a>
+        <a href="{% url 'inventory_overview' %}" class="btn">Inventory</a>
       {% endif %}
 
       <a href="{% url 'show_all_records' %}" class="btn">View all</a>
