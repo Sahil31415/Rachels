@@ -335,90 +335,270 @@
     .notif-item.read {
       opacity: 0.7;
     }
+
+    /* ===============================
+   SIDEBAR LAYOUT
+   =============================== */
+
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-600));
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .sidebar .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+
+    .sidebar-title {
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .sidebar-nav a {
+      display: block;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 6px;
+      transition: background .2s ease;
+    }
+
+    .sidebar-nav a:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ===============================
+   MAIN AREA
+   =============================== */
+
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--page);
+      border-bottom: 1px solid rgba(0, 0, 0, .08);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-title {
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .sidebar {
+        display: none;
+      }
+
+      body {
+        padding: 16px;
+      }
+    }
+
+    .sidebar-dropdown {
+      position: relative;
+    }
+
+    .dropdown-trigger {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.9);
+      transition: background .2s ease;
+    }
+
+    .dropdown-trigger:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      left: calc(100% - 4px);
+      /* 👈 overlap slightly */
+      top: 0;
+      background: var(--page);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      padding: 6px;
+      min-width: 160px;
+      display: none;
+      z-index: 100;
+    }
+
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .dropdown-menu a:hover {
+      background: var(--glass);
+    }
+
+    /* Show menu on hover */
+    .sidebar-dropdown:hover .dropdown-menu {
+      display: block;
+    }
+
+    .sidebar-dropdown::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 10px;
+      height: 100%;
+    }
   </style>
 
   {% block head %}{% endblock %}
 </head>
 
 <body>
-  <div class="container">
 
-    <header class="appbar" role="banner">
-      <div class="brand">
-        <div class="logo">R</div>
-        <div>
-          <div class="title">Rachels Management</div>
-          <div class="subtitle">{% block subtitle %}Orders dashboard{% endblock %}</div>
+  <body>
+
+    <div class="app-layout">
+
+      <!-- SIDEBAR -->
+      {% if user.is_authenticated %}
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="logo">R</div>
+          <div class="sidebar-title">Rachels</div>
         </div>
+
+        <nav class="sidebar-nav">
+          <a href="{% url 'Home' %}">Dashboard</a>
+          <div class="sidebar-dropdown">
+            <div class="dropdown-trigger">
+              Add
+            </div>
+
+            <div class="dropdown-menu">
+              {% if user.is_superuser %}
+              <a href="{% url 'add_vendor' %}">Add Vendor</a>
+              {% endif %}
+              <a href="{% url 'add_record' %}">Add Item</a>
+            </div>
+          </div>
+
+          {% if user.is_superuser %}
+          <a href="{% url 'advance_list' %}">Advance Salaries</a>
+          <a href="{% url 'inventory_overview' %}">Inventory</a>
+          {% endif %}
+
+          <a href="{% url 'show_all_records' %}">View All</a>
+        </nav>
+      </aside>
+      {% endif %}
+
+      <!-- MAIN CONTENT -->
+      <div class="main-area">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+          <div class="page-title">
+            {% block subtitle %}Orders dashboard{% endblock %}
+          </div>
+
+          <div class="topbar-actions">
+            {% if user.is_authenticated %}
+            <button class="btn ghost notif-bell" onclick="toggleNotifications()">
+              🔔 <span id="notifCount" class="notif-count"></span>
+            </button>
+
+            <a href="{% url 'logout' %}" class="btn ghost">Logout</a>
+            {% endif %}
+          </div>
+        </header>
+
+        <!-- PAGE -->
+        <main role="main">
+          <div class="page-card">
+            {% block content %}{% endblock %}
+          </div>
+        </main>
+
+        <footer>
+          &copy; {{ now.year }} Rachels Management
+        </footer>
+
       </div>
-
-      <nav class="nav" aria-label="Main navigation">
-        {% if user.is_authenticated %}
-        <a href="{% url 'Home' %}" class="btn">Dashboard</a>
-        <a href="{% url 'add_record' %}" class="btn">Add record</a>
-
-        {% if user.is_superuser %}
-        <a href="{% url 'add_vendor' %}" class="btn">Add Vendor</a>
-        <a href="{% url 'advance_list' %}" class="btn">Advance Salaries</a>
-        <a href="{% url 'inventory_overview' %}" class="btn">Inventory</a>
-        {% endif %}
-
-        <a href="{% url 'show_all_records' %}" class="btn">View all</a>
-
-        <button class="btn ghost notif-bell" onclick="toggleNotifications()">
-          🔔 <span id="notifCount" class="notif-count"></span>
-        </button>
-
-        <a href="{% url 'logout' %}" class="btn ghost">Logout</a>
-        {% else %}
-        <a href="{% url 'login' %}" class="primary">Sign in</a>
-        {% endif %}
-      </nav>
-    </header>
-
-    <main role="main">
-      <div class="page-card">
-        {% block content %}{% endblock %}
-      </div>
-    </main>
-
-    <footer>
-      &copy; {{ now.year }} Rachels Management
-    </footer>
-  </div>
-
-  <!-- NOTIFICATION PANEL -->
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notif-header">
-      Notifications
-      <button class="notif-close" onclick="toggleNotifications()">✕</button>
     </div>
 
-    <div id="notifList" class="notif-list"></div>
+    <!-- NOTIFICATION PANEL -->
+    <div id="notificationPanel" class="notification-panel">
+      <div class="notif-header">
+        Notifications
+        <button class="notif-close" onclick="toggleNotifications()">✕</button>
+      </div>
 
-    <button class="clear-btn" onclick="clearNotifications()">Clear all</button>
-  </div>
+      <div id="notifList" class="notif-list"></div>
 
-  <script>
-    const panel = document.getElementById("notificationPanel");
-    const list = document.getElementById("notifList");
-    const badge = document.getElementById("notifCount");
+      <button class="clear-btn" onclick="clearNotifications()">Clear all</button>
+    </div>
 
-    function toggleNotifications() {
-      panel.classList.toggle("open");
-    }
+    <script>
+      const panel = document.getElementById("notificationPanel");
+      const list = document.getElementById("notifList");
+      const badge = document.getElementById("notifCount");
 
-    function loadNotifications() {
-      fetch("{% url 'fetch_notifications' %}")
-        .then(r => r.json())
-        .then(d => {
-          list.innerHTML = "";
+      function toggleNotifications() {
+        panel.classList.toggle("open");
+      }
 
-          if (!d.notifications || d.notifications.length === 0) {
-            list.innerHTML = "<div class='muted'>No notifications</div>";
-          } else {
-            d.notifications.forEach(n => {
-              list.innerHTML += `
+      function loadNotifications() {
+        fetch("{% url 'fetch_notifications' %}")
+          .then(r => r.json())
+          .then(d => {
+            list.innerHTML = "";
+
+            if (!d.notifications || d.notifications.length === 0) {
+              list.innerHTML = "<div class='muted'>No notifications</div>";
+            } else {
+              d.notifications.forEach(n => {
+                list.innerHTML += `
             <div class="notif-item ${n.has_unread ? 'unread' : 'read'}"
                  onclick="handleLocationNotification('${n.location}')">
               <div class="notif-title">
@@ -429,78 +609,78 @@
               </div>
             </div>
           `;
-            });
-          }
+              });
+            }
 
-          if (d.unread_count && d.unread_count > 0) {
-            badge.style.display = "inline-block";
-            badge.innerText = d.unread_count;
-          } else {
-            badge.style.display = "none";
-          }
-        })
-        .catch(err => {
-          console.error("Notification fetch failed", err);
-        });
-    }
-
-    function handleLocationNotification(location) {
-      const item = event.currentTarget;
-
-      // Optimistically update UI
-      item.classList.remove("unread");
-      item.classList.add("read");
-
-      // Redirect to existing records page (Pending orders for location)
-      const targetUrl = `/records/?q=&location=${encodeURIComponent(location)}&status=Pending`;
-
-      window.location.href = targetUrl;
-    }
-
-    function clearNotifications() {
-      fetch("{% url 'clear_notifications' %}")
-        .then(() => loadNotifications());
-    }
-
-    function handleNotificationClick(id, url) {
-      // Optimistically update UI
-      const item = event.currentTarget;
-      item.classList.remove("unread");
-      item.classList.add("read");
-
-      // Mark as read in backend
-      fetch(`/notifications/read/location/${encodeURIComponent(location)}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken")
-        }
-      }).finally(() => {
-        if (url && url !== "#") {
-          window.location = url;
-        }
-      });
-    }
-
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          cookie = cookie.trim();
-          if (cookie.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
-            break;
-          }
-        }
+            if (d.unread_count && d.unread_count > 0) {
+              badge.style.display = "inline-block";
+              badge.innerText = d.unread_count;
+            } else {
+              badge.style.display = "none";
+            }
+          })
+          .catch(err => {
+            console.error("Notification fetch failed", err);
+          });
       }
-      return cookieValue;
-    }
 
-    setInterval(loadNotifications, 10000);
-    loadNotifications();
-  </script>
+      function handleLocationNotification(location) {
+        const item = event.currentTarget;
 
-  {% block scripts %}{% endblock %}
-</body>
+        // Optimistically update UI
+        item.classList.remove("unread");
+        item.classList.add("read");
+
+        // Redirect to existing records page (Pending orders for location)
+        const targetUrl = `/records/?q=&location=${encodeURIComponent(location)}&status=Pending`;
+
+        window.location.href = targetUrl;
+      }
+
+      function clearNotifications() {
+        fetch("{% url 'clear_notifications' %}")
+          .then(() => loadNotifications());
+      }
+
+      function handleNotificationClick(id, url) {
+        // Optimistically update UI
+        const item = event.currentTarget;
+        item.classList.remove("unread");
+        item.classList.add("read");
+
+        // Mark as read in backend
+        fetch(`/notifications/read/location/${encodeURIComponent(location)}/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+          }
+        }).finally(() => {
+          if (url && url !== "#") {
+            window.location = url;
+          }
+        });
+      }
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+              cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      setInterval(loadNotifications, 10000);
+      loadNotifications();
+    </script>
+
+    {% block scripts %}{% endblock %}
+  </body>
 
 </html>
