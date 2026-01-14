@@ -1,5 +1,6 @@
 from django import forms
 from .models import Record, Vendor, AdvanceSalary
+from datetime import date
 
 class RecordForm(forms.ModelForm):
     LOCATION_CHOICES = [
@@ -10,7 +11,12 @@ class RecordForm(forms.ModelForm):
         ('Rachels2', 'Rachels2')
     ]
 
-    location = forms.ChoiceField(choices=LOCATION_CHOICES)
+    location = forms.ChoiceField(
+        choices=LOCATION_CHOICES,
+        widget=forms.Select(attrs={
+            "class": "form-control"
+        })
+    )
 
     class Meta:
         model = Record
@@ -18,12 +24,33 @@ class RecordForm(forms.ModelForm):
         widgets = {
             "date": forms.DateInput(attrs={
                 "type": "date",
-                "class": "form-control"
-            }),
-            "location": forms.Select(attrs={
-                "class": "form-control"
+                "class": "form-control",
             })
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        today = date.today()
+
+        # Set today's date automatically
+        self.fields["date"].initial = today
+
+        # Lock date selection to today only (HTML level)
+        self.fields["date"].widget.attrs.update({
+            "min": today,
+            "max": today,
+            "readonly": True   # prevents manual typing
+        })
+
+    def clean_date(self):
+        selected_date = self.cleaned_data.get("date")
+        today = date.today()
+
+        if selected_date != today:
+            raise forms.ValidationError("Date must be today's date.")
+
+        return selected_date
 
 class VendorForm(forms.ModelForm):
     class Meta:
