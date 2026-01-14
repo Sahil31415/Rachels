@@ -20,6 +20,7 @@ from collections import defaultdict
 import openpyxl
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from django.db.models import Max, Q
 
 User = get_user_model()
 
@@ -506,23 +507,33 @@ def edit_order(request, pk):
 
 @login_required
 def fetch_notifications(request):
-    qs = request.user.notifications.order_by("-created_at")[:20]
+    user = request.user
 
-    data = [{
-        "id": n.id,
-        "message": n.message,
-        "location": n.location,           # NEW
-        "url": n.url,                     # NEW (e.g. record detail)
-        "is_read": n.is_read,
-        "created_at": n.created_at.strftime("%d %b, %H:%M")
-    } for n in qs]
+    # Group notifications by location
+    grouped = (
+        user.notifications
+        .values("location")
+        .annotate(
+            latest_time=Max("created_at"),
+            unread_count=Count("id", filter=Q(is_read=False))
+        )
+        .order_by("-latest_time")
+    )
 
+    data = []
 
-    unread_count = request.user.notifications.filter(is_read=False).count()
+    for g in grouped:
+        data.append({
+            "location": g["location"],
+            "has_unread": g["unread_count"] > 0,
+            "latest_time": g["latest_time"].strftime("%d %b, %H:%M"),
+        })
+
+    total_unread_locations = sum(1 for g in grouped if g["unread_count"] > 0)
 
     return JsonResponse({
         "notifications": data,
-        "unread_count": unread_count
+        "unread_count": total_unread_locations
     })
 
 @login_required

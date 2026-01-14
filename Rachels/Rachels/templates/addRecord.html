@@ -249,8 +249,13 @@
 
           <input type="text" class="unit" placeholder="Unit" readonly>
 
-          <input type="number" class="price" step="0.01" {% if not is_admin %}readonly{% endif %}
-            oninput="recalc(this)">
+          
+          <input type="number"
+                name="price[]"
+                class="price"
+                step="0.1"
+                {% if not is_admin %}readonly{% endif %}
+                oninput="recalc(this)">
 
           <input type="text" class="total" readonly>
 
@@ -274,65 +279,52 @@
 {% block scripts %}
 <script>
   const vendorItems = {
-    {
-      %
-      for vendor in vendors %
-    }
-    "{{ vendor.id }}": [{
-      %
-      for item in vendor.items.all %
-    } {
-      id: "{{ item.id }}",
-      name: "{{ item.item_name|escapejs }}",
-      unit: "{{ item.unit }}",
-      price: {
-        {
-          item.unit_price
-        }
-      }
-    } {
-      %
-      if not forloop.last %
-    }, {
-      %
-      endif %
-    } {
-      %
-      endfor %
-    }] {
-      %
-      if not forloop.last %
-    },
-    {
-      %
-      endif %
-    } {
-      %
-      endfor %
-    }
+    {% for vendor in vendors %}
+      "{{ vendor.id }}": [
+        {% for item in vendor.items.all %}
+          {
+            id: {{ item.id }},
+            item_name: "{{ item.item_name|escapejs }}",
+            unit_price: {{ item.unit_price }},
+            unit: "{{ item.unit }}"
+          }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]{% if not forloop.last %},{% endif %}
+    {% endfor %}
   };
-
+</script>
+<script>
   function populateItems(sel) {
     const row = sel.closest(".item-row");
     const itemSel = row.querySelector('select[name="item[]"]');
+
+    // Reset dropdown
     itemSel.innerHTML = '<option value="">Item</option>';
+
+    // Populate items for selected vendor
     (vendorItems[sel.value] || []).forEach(i => {
       const opt = document.createElement("option");
       opt.value = i.id;
-      opt.textContent = i.name;
+      opt.textContent = i.item_name; // ✅ FIX HERE
       itemSel.appendChild(opt);
     });
   }
 
   function onItemChange(sel) {
-    const row = sel.closest(".item-row");
-    const vendorId = row.querySelector('select[name="vendor[]"]').value;
-    const item = (vendorItems[vendorId] || []).find(i => i.id === sel.value);
-    if (!item) return;
-    row.querySelector(".unit").value = item.unit;
-    row.querySelector(".price").value = item.price;
-    recalc(row.querySelector(".qty"));
-  }
+  const row = sel.closest(".item-row");
+  const vendorId = row.querySelector('select[name="vendor[]"]').value;
+
+  const item = (vendorItems[vendorId] || []).find(
+    i => String(i.id) === String(sel.value)   // ✅ FIX 1
+  );
+
+  if (!item) return;
+
+  row.querySelector(".unit").value = item.unit;
+  row.querySelector(".price").value = item.unit_price;  // ✅ FIX 2
+
+  recalc(row.querySelector(".qty"));
+}
 
   function recalc(el) {
     const row = el.closest(".item-row");
