@@ -33,4 +33,5 @@ urlpatterns = [
     path("notifications/clear/", clear_notifications, name="clear_notifications"),
     path("notifications/read/<int:pk>/", mark_notification_read, name="mark_notification_read"),
     path("inventory/", inventory_overview, name="inventory_overview"),
+    path("stores/", manage_stores, name="manage_stores"),
 ]

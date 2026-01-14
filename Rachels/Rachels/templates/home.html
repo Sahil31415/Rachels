@@ -161,7 +161,7 @@
     <table style="width:100%; margin-top:12px; font-size:14px;">
       {% for r in pending_by_location %}
         <tr>
-          <td>{{ r.location }}</td>
+          <td>{{ r.location__name }}</td>
           <td style="text-align:right; font-weight:700;">{{ r.count }}</td>
         </tr>
       {% empty %}
@@ -176,7 +176,7 @@
       {% for r in latest_records %}
         <div class="card-row">
           <div>
-            <div class="row-title">{{ r.location }}</div>
+            <div class="row-title">{{ r.location.name }}</div>
             <div class="row-sub">{{ r.date }}</div>
           </div>
           <a class="row-link" href="{% url 'record_detail' r.pk %}">View</a>
@@ -203,7 +203,7 @@
     {% for rec in top5_orders %}
       <tr>
         <td>
-          <strong>{{ rec.location }}</strong><br>
+          <strong>{{ rec.location.name }}</strong><br>
           <span class="muted">{{ rec.item.item_name }} × {{ rec.quantity }}</span>
         </td>
         <td>{{ rec.vendor.name }}</td>
@@ -227,9 +227,11 @@
 
     <!-- Header -->
     <div>
-      <div class="card-title">{{ card.location }}</div>
+      <div class="card-title">{{ card.location.name }}</div>
       <div class="muted" style="font-size:12px;">
-        <span style="color:#A0522D; font-weight:600;">{{ card.pending_count }} Pending</span>
+        <span style="color:#A0522D; font-weight:600;">
+          {{ card.pending_count }} Pending
+        </span>
         &bull; {{ card.successful_count }} Done
       </div>
     </div>
@@ -274,6 +276,7 @@
   {% endfor %}
 
 </section>
+
 <script>
   setTimeout(function () {
     window.location.reload();

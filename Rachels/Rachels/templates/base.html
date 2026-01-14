@@ -518,6 +518,7 @@
             <div class="dropdown-menu">
               {% if user.is_superuser %}
               <a href="{% url 'add_vendor' %}">Add Vendor</a>
+              <a href="{% url 'manage_stores' %}">Add Stores</a>
               {% endif %}
               <a href="{% url 'add_record' %}">Add Item</a>
             </div>

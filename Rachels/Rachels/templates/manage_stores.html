@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Manage Stores{% endblock %}
+{% block subtitle %}Store Management{% endblock %}
+
+{% block content %}
+
+<div class="top-row">
+  <h2>Stores</h2>
+</div>
+
+<form method="post" class="page-card" style="margin-bottom:30px;">
+  {% csrf_token %}
+
+  <div style="margin-bottom:16px;">
+    <label>Store name</label>
+    {{ form.name }}
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <label>
+      {{ form.is_active }} Active
+    </label>
+  </div>
+
+  <button type="submit" class="btn primary">Add Store</button>
+</form>
+
+<div class="page-card">
+  <h3>Existing Stores</h3>
+
+  {% for store in stores %}
+    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(0,0,0,.05);">
+      <div>
+        <strong>{{ store.name }}</strong>
+        {% if not store.is_active %}
+          <span class="pill">Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">No stores added yet.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

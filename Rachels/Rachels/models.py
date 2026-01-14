@@ -5,6 +5,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 
+class Store(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
 class Vendor(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -40,7 +47,11 @@ class VendorItem(models.Model):
 
 class Record(models.Model):
     date = models.DateField()
-    location = models.CharField(max_length=100)
+    location = models.ForeignKey(
+        Store,
+        on_delete=models.PROTECT,
+        related_name="records"
+    )
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
     item = models.ForeignKey(VendorItem, on_delete=models.SET_NULL, null=True)
     quantity = models.PositiveIntegerField(default=1)
@@ -94,3 +105,4 @@ class Notification(models.Model):
     url = models.CharField(max_length=255, blank=True)       # REQUIRED
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+

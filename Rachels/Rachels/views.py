@@ -10,8 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.paginator import Paginator
-from .forms import AdvanceSalaryForm, RecordForm, VendorForm
-from .models import AdvanceSalary, Record, Vendor, VendorItem
+from .forms import *
+from .models import *
 from decimal import Decimal
 from django.http import JsonResponse
 from .models import Notification
@@ -21,6 +21,7 @@ import openpyxl
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from django.db.models import Max, Q
+from django.contrib import admin
 
 User = get_user_model()
 
@@ -55,64 +56,100 @@ def admin_required(view_func):
 
 @login_required
 def home(request):
+    user = request.user
+
+    # Check if Record has status field (backward-safe)
     field_names = [f.name for f in Record._meta.fields]
-    has_status = 'status' in field_names
+    has_status = "status" in field_names
+
+    # ----------------------------
+    # TOTAL PENDING
+    # ----------------------------
     if has_status:
-        total_pending = Record.objects.filter(status__iexact='Pending').count()
+        total_pending = Record.objects.filter(status__iexact="Pending").count()
     else:
         total_pending = Record.objects.count()
 
+    # ----------------------------
+    # PENDING BY STORE
+    # ----------------------------
     if has_status:
-        pending_by_location = list(
+        pending_by_location = (
             Record.objects
-                  .filter(status__iexact='Pending')
-                  .values('location')
-                  .annotate(count=Count('id'))
-                  .order_by('-count', 'location')
+            .filter(status__iexact="Pending")
+            .values("location__name")
+            .annotate(count=Count("id"))
+            .order_by("-count", "location__name")
         )
     else:
-        pending_by_location = list(
+        pending_by_location = (
             Record.objects
-                  .values('location')
-                  .annotate(count=Count('id'))
-                  .order_by('-count', 'location')
+            .values("location__name")
+            .annotate(count=Count("id"))
+            .order_by("-count", "location__name")
         )
 
+    # ----------------------------
+    # TOP 5 PENDING ORDERS
+    # ----------------------------
     if has_status:
         top5_orders = (
             Record.objects
-                  .filter(status__iexact='Pending')
-                  .order_by('-date', '-id')[:5]
+            .filter(status__iexact="Pending")
+            .select_related("location")
+            .order_by("-date", "-id")[:5]
         )
     else:
-        top5_orders = Record.objects.order_by('-date', '-id')[:5]
+        top5_orders = (
+            Record.objects
+            .select_related("location")
+            .order_by("-date", "-id")[:5]
+        )
 
-    latest_records = Record.objects.order_by('-date', '-id')[:5]
+    # ----------------------------
+    # LATEST RECORDS
+    # ----------------------------
+    latest_records = (
+        Record.objects
+        .select_related("location")
+        .order_by("-date", "-id")[:5]
+    )
 
-    ALL_LOCATIONS = ['Dulari', 'Pours and Plates', 'Rachels', 'Rachels1', 'Rachels2']
+    # ----------------------------
+    # STORE CARDS (NO HARDCODING)
+    # ----------------------------
+    stores = Store.objects.filter(is_active=True).order_by("name")
+
     location_cards = []
 
-    for loc in ALL_LOCATIONS:
-        if not user_can_view_location(request.user, loc):
+    for store in stores:
+        # 🔒 Permission check
+        if not user_can_view_location(user, store):
             continue
 
         if has_status:
-            pending_base = Record.objects.filter(
-                location=loc,
-                status__iexact='Pending'
-            ).order_by('-date', '-id')
+            pending_base = (
+                Record.objects
+                .filter(location=store, status__iexact="Pending")
+                .order_by("-date", "-id")
+            )
 
-            successful_base = Record.objects.filter(
-                location=loc
-            ).exclude(
-                status__iexact='Pending'
-            ).order_by('-date', '-id')
+            successful_base = (
+                Record.objects
+                .filter(location=store)
+                .exclude(status__iexact="Pending")
+                .order_by("-date", "-id")
+            )
         else:
-            pending_base = Record.objects.filter(location=loc).order_by('-date', '-id')
+            pending_base = (
+                Record.objects
+                .filter(location=store)
+                .order_by("-date", "-id")
+            )
             successful_base = Record.objects.none()
 
         location_cards.append({
-            "location": loc,
+            "location": store,                # Store object
             "pending": list(pending_base[:5]),
             "successful": list(successful_base[:5]),
             "pending_count": pending_base.count(),
@@ -126,6 +163,7 @@ def home(request):
         "top5_orders": top5_orders,
         "location_cards": location_cards,
     }
+
     return render(request, "home.html", context)
 
 @login_required
@@ -425,49 +463,59 @@ def _get_manager_location(user):
 def add_record(request):
     user = request.user
     is_admin = user.is_superuser
-    manager_location = _get_manager_location(user)
+    manager_location = _get_manager_location(user)  # Store or None
 
+    # 🔒 Permission check
     if not is_admin and not manager_location:
         return HttpResponseForbidden("You are not allowed to add records.")
 
     if request.method == "POST":
-        date = request.POST.get("date")
+        form = RecordForm(request.POST)
 
-        if is_admin:
-            location = request.POST.get("location")
-        else:
-            location = manager_location
+        if form.is_valid():
+            date = form.cleaned_data["date"]
 
-        vendors = request.POST.getlist("vendor[]")
-        items = request.POST.getlist("item[]")
-        quantities = request.POST.getlist("quantity[]")
+            # ✅ Location handling (SAFE)
+            if is_admin:
+                location = form.cleaned_data["location"]  # Store object
+            else:
+                location = manager_location               # Enforced Store
 
-        for v, i, q in zip(vendors, items, quantities):
-            if v and i and q:
+            vendors = request.POST.getlist("vendor[]")
+            items = request.POST.getlist("item[]")
+            quantities = request.POST.getlist("quantity[]")
+
+            for v, i, q in zip(vendors, items, quantities):
+                if not (v and i and q):
+                    continue
+
                 record = Record.objects.create(
                     date=date,
-                    location=location,
+                    location=location,   # ✅ Store object
                     vendor_id=v,
                     item_id=i,
                     quantity=q,
                     status="Pending",
                 )
-                admins = User.objects.filter(is_superuser=True)
 
-                print(record.pk)
-                
+                # 🔔 Notify admins
+                admins = User.objects.filter(is_superuser=True)
                 for admin in admins:
                     Notification.objects.create(
                         recipient=admin,
                         message=f"New order added (#{record.pk})",
-                        location=record.location,
+                        location=record.location,  # Store
                         url=reverse("record_detail", kwargs={"pk": record.pk}),
                     )
 
-        return redirect("show_all_records")
+            return redirect("show_all_records")
+
+        # ❌ Form invalid → fall through to re-render with errors
+
+    else:
+        form = RecordForm()
 
     vendors = Vendor.objects.prefetch_related("items")
-    form = RecordForm()
 
     context = {
         "form": form,
@@ -574,4 +622,30 @@ def inventory_overview(request):
 
     return render(request, "inventory_overview.html", {
         "inventory_by_store": dict(inventory_by_store)
+    })
+
+@admin.register(Store)
+class StoreAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_active")
+    list_editable = ("is_active",)
+    search_fields = ("name",)
+
+def is_admin(user):
+    return user.is_superuser
+
+@user_passes_test(is_admin)
+def manage_stores(request):
+    if request.method == "POST":
+        form = StoreForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("manage_stores")
+    else:
+        form = StoreForm()
+
+    stores = Store.objects.all().order_by("name")
+
+    return render(request, "manage_stores.html", {
+        "form": form,
+        "stores": stores
     })

@@ -219,11 +219,15 @@
 
       <div>
         <label>Location</label>
+
         {% if is_admin %}
         {{ form.location }}
         {% else %}
-        <input value="{{ manager_location }}" readonly>
-        <input type="hidden" name="location" value="{{ manager_location }}">
+        <!-- Display store name -->
+        <input type="text" class="form-control" value="{{ manager_location.name }}" readonly>
+
+        <!-- Submit store ID -->
+        <input type="hidden" name="location" value="{{ manager_location.id }}">
         {% endif %}
       </div>
     </div>
@@ -249,13 +253,9 @@
 
           <input type="text" class="unit" placeholder="Unit" readonly>
 
-          
-          <input type="number"
-                name="price[]"
-                class="price"
-                step="0.1"
-                {% if not is_admin %}readonly{% endif %}
-                oninput="recalc(this)">
+
+          <input type="number" name="price[]" class="price" step="0.1" {% if not is_admin %}readonly{% endif %}
+            oninput="recalc(this)">
 
           <input type="text" class="total" readonly>
 
@@ -311,20 +311,20 @@
   }
 
   function onItemChange(sel) {
-  const row = sel.closest(".item-row");
-  const vendorId = row.querySelector('select[name="vendor[]"]').value;
+    const row = sel.closest(".item-row");
+    const vendorId = row.querySelector('select[name="vendor[]"]').value;
 
-  const item = (vendorItems[vendorId] || []).find(
-    i => String(i.id) === String(sel.value)   // ✅ FIX 1
-  );
+    const item = (vendorItems[vendorId] || []).find(
+      i => String(i.id) === String(sel.value) // ✅ FIX 1
+    );
 
-  if (!item) return;
+    if (!item) return;
 
-  row.querySelector(".unit").value = item.unit;
-  row.querySelector(".price").value = item.unit_price;  // ✅ FIX 2
+    row.querySelector(".unit").value = item.unit;
+    row.querySelector(".price").value = item.unit_price; // ✅ FIX 2
 
-  recalc(row.querySelector(".qty"));
-}
+    recalc(row.querySelector(".qty"));
+  }
 
   function recalc(el) {
     const row = el.closest(".item-row");
