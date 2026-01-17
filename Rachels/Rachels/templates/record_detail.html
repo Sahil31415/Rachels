@@ -1,332 +1,414 @@
 {% extends "base.html" %}
 
-{% block title %}Record #{{ record.id }}{% endblock %}
+{% block title %}Record #{{ record.id }} — Inventory{% endblock %}
 
 {% block head %}
 <style>
-/* ===============================
-   RECORD DETAIL – FINAL POLISH
-   =============================== */
+    /* ===============================
+       THEME VARIABLES & BASICS
+       =============================== */
+    :root {
+        --brand-primary: #4318FF;
+        --brand-hover: #3311db;
+        
+        --text-main: #2B3674;       /* Deep Navy */
+        --text-secondary: #A3AED0;  /* Cool Gray */
+        
+        --bg-body: #F4F7FE;
+        --bg-surface: #ffffff;
+        --bg-input: #F4F7FE;
+        
+        --status-success-bg: #E6FBF5;
+        --status-success-text: #05CD99;
+        
+        --status-pending-bg: #FFF7EB;
+        --status-pending-text: #FFB547;
+        
+        --radius-card: 20px;
+        --radius-input: 16px;
+        
+        --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+    }
 
-.record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 24px;
-  margin-bottom: 32px;
-  border-bottom: 1px solid rgba(90,64,50,0.12);
-}
+    body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        font-family: 'DM Sans', sans-serif;
+    }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 32px 28px;
-  margin-bottom: 40px;
-}
+    .main-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+    /* ===============================
+       CARD LAYOUT
+       =============================== */
+    .detail-card {
+        background: var(--bg-surface);
+        border-radius: var(--radius-card);
+        padding: 40px;
+        box-shadow: var(--shadow-card);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
 
-.field-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--muted);
-  font-weight: 700;
-}
+    /* Header */
+    .record-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 40px;
+        border-bottom: 1px solid var(--bg-body);
+        padding-bottom: 24px;
+    }
 
-.field-value {
-  font-size: 16px;
-  color: var(--text);
-  font-weight: 500;
-}
+    .record-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 6px 0;
+        letter-spacing: -0.02em;
+    }
+    
+    .record-meta {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
 
-.field-value.highlight {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--accent-600);
-}
+    /* Badges */
+    .status-badge {
+        padding: 8px 18px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-badge.pending {
+        background: var(--status-pending-bg);
+        color: var(--status-pending-text);
+    }
+    .status-badge.completed {
+        background: var(--status-success-bg);
+        color: var(--status-success-text);
+    }
+    .status-badge.default {
+        background: var(--bg-input);
+        color: var(--text-secondary);
+    }
 
-.edit-mode {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,.15);
-  font-size: 15px;
-  width: 100%;
-}
+    /* ===============================
+       GRID & FIELDS
+       =============================== */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 32px 24px;
+        margin-bottom: 40px;
+    }
 
-/* Status badges */
-.badge {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-}
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-.badge.pending {
-  background: rgba(160,82,45,.12);
-  color: #a0522d;
-}
+    .field-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        font-weight: 700;
+    }
 
-.badge.completed {
-  background: rgba(60,90,60,.12);
-  color: #3c5a3c;
-}
+    /* View Mode Text */
+    .field-value {
+        font-size: 16px;
+        color: var(--text-main);
+        font-weight: 700;
+        min-height: 24px;
+    }
+    .field-value.highlight {
+        color: var(--brand-primary);
+        font-size: 18px;
+    }
+    .field-value.mono {
+        font-family: 'Courier New', monospace;
+        color: var(--text-secondary);
+    }
 
-.badge.default {
-  background: rgba(0,0,0,.06);
-  color: #334155;
-}
+    /* Edit Mode Inputs (Horizon Style) */
+    .form-control-edit {
+        width: 100%;
+        height: 46px;
+        padding: 0 16px;
+        background: var(--bg-input);
+        border: 1px solid transparent;
+        border-radius: var(--radius-input);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-main);
+        box-sizing: border-box;
+        transition: all 0.2s;
+        outline: none;
+    }
+    .form-control-edit:focus {
+        background: #ffffff;
+        box-shadow: 0 0 0 2px var(--brand-primary);
+    }
 
-/* Actions */
-.actions-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-top: 28px;
-  border-top: 1px solid rgba(90,64,50,0.12);
-  flex-wrap: wrap;
-}
+    /* ===============================
+       ACTIONS FOOTER
+       =============================== */
+    .actions-bar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-top: 30px;
+        border-top: 1px solid var(--bg-body);
+        flex-wrap: wrap;
+    }
 
-.actions-bar .btn,
-.actions-bar .btn-danger {
-  height: 46px;
-  padding: 0 22px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+    .spacer { flex-grow: 1; }
 
-/* Primary */
-.actions-bar .btn.primary {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  box-shadow: 0 6px 16px rgba(0,0,0,.15);
-}
+    /* Buttons */
+    .btn {
+        height: 46px;
+        padding: 0 24px;
+        border-radius: var(--radius-input);
+        font-size: 14px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+    }
 
-.actions-bar .btn.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(0,0,0,.22);
-}
+    .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+    .btn-ghost:hover {
+        background: var(--bg-input);
+        color: var(--text-main);
+    }
 
-/* Danger */
-.btn-danger {
-  background: #d65c5c;
-  color: #fff;
-  border: none;
-  box-shadow: 0 6px 16px rgba(214,92,92,.28);
-}
+    .btn-primary {
+        background: var(--brand-primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(67, 24, 255, 0.25);
+    }
+    .btn-primary:hover {
+        background: var(--brand-hover);
+        transform: translateY(-1px);
+    }
 
-.btn-danger:hover {
-  background: #bf4b4b;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(214,92,92,.38);
-}
+    .btn-danger-soft {
+        background: #FFF5F5;
+        color: #E31A1A;
+    }
+    .btn-danger-soft:hover {
+        background: #FFE5E5;
+        transform: translateY(-1px);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 600px) {
+        .detail-grid { grid-template-columns: 1fr; gap: 24px; }
+        .actions-bar { flex-direction: column-reverse; align-items: stretch; }
+        .record-header { flex-direction: column; gap: 16px; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="main-container">
+    <article class="detail-card">
+        
+        <header class="record-header">
+            <div class="record-title">
+                <h1>Order Record #{{ record.id }}</h1>
+                <div class="record-meta">
+                    Created on {{ record.date }}
+                </div>
+            </div>
 
-<article>
+            <div>
+                {% if record.status|lower == "pending" %}
+                    <span class="status-badge pending">Pending</span>
+                {% elif record.status|lower == "completed" %}
+                    <span class="status-badge completed">Completed</span>
+                {% else %}
+                    <span class="status-badge default">{{ record.status }}</span>
+                {% endif %}
+            </div>
+        </header>
 
-  <!-- Header -->
-  <header class="record-header">
-    <div>
-      <h1 style="margin:0;font-size:24px;font-weight:800;color:var(--accent-600);">
-        Record #{{ record.id }}
-      </h1>
-      <div class="muted" style="font-size:13px;margin-top:4px;">
-        Created on {{ record.date }}
-      </div>
-    </div>
+        <form method="post" action="{% url 'edit_order' record.pk %}" id="editForm">
+            {% csrf_token %}
 
-    <div>
-      {% if record.status|lower == "pending" %}
-        <span class="badge pending">Pending</span>
-      {% elif record.status|lower == "completed" %}
-        <span class="badge completed">Completed</span>
-      {% else %}
-        <span class="badge default">{{ record.status }}</span>
-      {% endif %}
-    </div>
-  </header>
+            <section class="detail-grid">
+                
+                <div class="field-group">
+                    <span class="field-label">Location</span>
+                    <span class="field-value">{{ record.location }}</span>
+                </div>
 
-  <!-- Editable Details -->
-  <form method="post"
-        action="{% url 'edit_order' record.pk %}"
-        id="editForm">
-    {% csrf_token %}
+                <div class="field-group">
+                    <span class="field-label">Vendor</span>
+                    <span class="field-value">{{ record.vendor.name }}</span>
+                </div>
 
-    <section class="detail-grid">
+                <div class="field-group">
+                    <span class="field-label">Item</span>
+                    <span class="field-value">{{ record.item.item_name }}</span>
+                </div>
 
-      <div class="field-group">
-        <span class="field-label">Location</span>
-        <span class="field-value highlight">{{ record.location }}</span>
-      </div>
+                <div class="field-group">
+                    <span class="field-label">Quantity</span>
+                    
+                    <span class="field-value view-mode">{{ record.quantity }}</span>
+                    
+                    <input type="number" 
+                           name="quantity" 
+                           id="quantityInput" 
+                           min="0.1" step="any"
+                           value="{{ record.quantity }}" 
+                           class="form-control-edit edit-mode" 
+                           style="display:none;">
+                </div>
 
-      <div class="field-group">
-        <span class="field-label">Vendor</span>
-        <span class="field-value highlight">{{ record.vendor.name }}</span>
-      </div>
+                <div class="field-group">
+                    <span class="field-label">Unit</span>
+                    <span class="field-value">{{ record.item.unit }}</span>
+                </div>
 
-      <div class="field-group">
-        <span class="field-label">Item</span>
-        <span class="field-value">{{ record.item.item_name }}</span>
-      </div>
+                <div class="field-group">
+                    <span class="field-label">Unit Price</span>
+                    
+                    <span class="field-value view-mode">₹ {{ record.item.unit_price }}</span>
+                    
+                    <input type="number" 
+                           name="unit_price" 
+                           id="unitPriceInput" 
+                           step="0.01" 
+                           value="{{ record.item.unit_price }}" 
+                           class="form-control-edit edit-mode" 
+                           style="display:none;">
+                </div>
 
-      <!-- Quantity -->
-      <div class="field-group">
-        <span class="field-label">Quantity</span>
+                <div class="field-group">
+                    <span class="field-label">Total Amount</span>
+                    <span class="field-value highlight" id="totalAmount">
+                        ₹ {{ total_amount }}
+                    </span>
+                </div>
 
-        <span class="field-value view-mode">
-          {{ record.quantity }}
-        </span>
+                <div class="field-group">
+                    <span class="field-label">System ID</span>
+                    <span class="field-value mono">{{ record.id }}</span>
+                </div>
 
-        <input type="number"
-               name="quantity"
-               id="quantityInput"
-               min="1"
-               value="{{ record.quantity }}"
-               class="edit-mode"
-               style="display:none;">
-      </div>
+            </section>
+        </form>
 
-      <div class="field-group">
-        <span class="field-label">Unit</span>
-        <span class="field-value">{{ record.item.unit }}</span>
-      </div>
+        <footer class="actions-bar">
+            <a class="btn btn-ghost" href="{% url 'show_all_records' %}">
+                ← Back to List
+            </a>
 
-      <!-- Unit Price -->
-      <div class="field-group">
-        <span class="field-label">Unit Price</span>
+            <div class="spacer"></div>
 
-        <span class="field-value view-mode">
-          ₹ {{ record.item.unit_price }}
-        </span>
+            {% if is_admin %}
+                
+                <button type="button" class="btn btn-ghost" id="editBtn" onclick="enableEdit()">
+                    Edit Details
+                </button>
 
-        <input type="number"
-               name="unit_price"
-               id="unitPriceInput"
-               step="0.01"
-               value="{{ record.item.unit_price }}"
-               class="edit-mode"
-               style="display:none;">
-      </div>
+                <button type="button" class="btn btn-ghost" id="cancelBtn" onclick="cancelEdit()" style="display:none;">
+                    Cancel
+                </button>
 
-      <!-- Total -->
-      <div class="field-group">
-        <span class="field-label">Total Amount</span>
-        <span class="field-value highlight" id="totalAmount">
-          ₹ {{ total_amount }}
-        </span>
-      </div>
+                <button type="submit" form="editForm" class="btn btn-primary" id="saveBtn" style="display:none;">
+                    Save Changes
+                </button>
 
-      <div class="field-group">
-        <span class="field-label">System ID</span>
-        <span class="field-value" style="font-family:monospace;color:var(--muted);">
-          {{ record.id }}
-        </span>
-      </div>
+                {% if record.status|lower != "completed" %}
+                    <form method="post" action="{% url 'mark_completed' record.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            Mark Completed
+                        </button>
+                    </form>
+                {% endif %}
 
-    </section>
-  </form>
+                <form method="post" action="{% url 'delete_record' record.pk %}" 
+                      onsubmit="return confirm('Are you sure you want to permanently delete this record?');" 
+                      style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger-soft">
+                        Delete
+                    </button>
+                </form>
 
-  <!-- Actions -->
-  <footer class="actions-bar">
-    <a class="btn ghost" href="{% url 'show_all_records' %}">
-      ← Back to list
-    </a>
+            {% endif %}
+        </footer>
 
-    <div style="flex-grow:1"></div>
+    </article>
+</div>
+{% endblock %}
 
-    {% if is_admin %}
-
-      <button type="button"
-              class="btn ghost"
-              id="editBtn"
-              onclick="enableEdit()">
-        Edit Order
-      </button>
-
-      <button type="submit"
-              form="editForm"
-              class="btn primary"
-              id="saveBtn"
-              style="display:none;">
-        Save Changes
-      </button>
-
-      <button type="button"
-              class="btn ghost"
-              id="cancelBtn"
-              style="display:none;"
-              onclick="cancelEdit()">
-        Cancel
-      </button>
-
-      {% if record.status|lower != "completed" %}
-      <form method="post"
-            action="{% url 'mark_completed' record.pk %}">
-        {% csrf_token %}
-        <button type="submit" class="btn primary">
-          Mark as Completed
-        </button>
-      </form>
-      {% endif %}
-
-      <form method="post"
-            action="{% url 'delete_record' record.pk %}"
-            onsubmit="return confirm('Are you sure you want to permanently delete this record?');">
-        {% csrf_token %}
-        <button type="submit" class="btn-danger">
-          Delete Record
-        </button>
-      </form>
-
-    {% endif %}
-  </footer>
-
-</article>
-
+{% block scripts %}
 <script>
-function enableEdit() {
-  document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
+    /* Toggle between View Text and Input Fields 
+    */
+    function enableEdit() {
+        document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
 
-  document.getElementById('editBtn').style.display = 'none';
-  document.getElementById('saveBtn').style.display = 'inline-flex';
-  document.getElementById('cancelBtn').style.display = 'inline-flex';
+        // Toggle Buttons
+        document.getElementById('editBtn').style.display = 'none';
+        
+        // Show Save/Cancel
+        document.getElementById('saveBtn').style.display = 'inline-flex';
+        document.getElementById('cancelBtn').style.display = 'inline-flex';
 
-  calculateTotal();
-}
+        // Run calculation once in case inputs have values
+        calculateTotal();
+    }
 
-function cancelEdit() {
-  document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'block');
+    function cancelEdit() {
+        document.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.view-mode').forEach(el => el.style.display = 'block');
 
-  document.getElementById('editBtn').style.display = 'inline-flex';
-  document.getElementById('saveBtn').style.display = 'none';
-  document.getElementById('cancelBtn').style.display = 'none';
-}
+        // Toggle Buttons
+        document.getElementById('editBtn').style.display = 'inline-flex';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
 
-function calculateTotal() {
-  const qty = parseFloat(document.getElementById('quantityInput').value) || 0;
-  const price = parseFloat(document.getElementById('unitPriceInput').value) || 0;
-  const total = (qty * price).toFixed(2);
+    /* Live Total Calculation 
+    */
+    function calculateTotal() {
+        const qty = parseFloat(document.getElementById('quantityInput').value) || 0;
+        const price = parseFloat(document.getElementById('unitPriceInput').value) || 0;
+        const total = (qty * price).toFixed(2);
 
-  document.getElementById('totalAmount').innerText = `₹ ${total}`;
-}
+        // Update the display text
+        document.getElementById('totalAmount').innerText = `₹ ${total}`;
+    }
 
-document.getElementById('quantityInput')?.addEventListener('input', calculateTotal);
-document.getElementById('unitPriceInput')?.addEventListener('input', calculateTotal);
+    // Attach Event Listeners
+    const qtyInput = document.getElementById('quantityInput');
+    const priceInput = document.getElementById('unitPriceInput');
+
+    if (qtyInput) qtyInput.addEventListener('input', calculateTotal);
+    if (priceInput) priceInput.addEventListener('input', calculateTotal);
 </script>
-
 {% endblock %}

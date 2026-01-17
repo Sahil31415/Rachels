@@ -1,286 +1,368 @@
 {% extends "base.html" %}
 
-{% block title %}Home — Records{% endblock %}
+{% block title %}Dashboard — Rachels{% endblock %}
+{% block subtitle %}Overview{% endblock %}
 
 {% block head %}
 <style>
-/* ===============================
-   DASHBOARD – CLEAN & NON-SCROLL
-   =============================== */
+    /* ================= DASHBOARD MODERNIZATION ================= */
+    
+    /* 1. Global Layout & Spacing */
+    :root {
+        --card-radius: 24px;
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+        --card-hover: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
+    }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-bottom: 60px;
+    }
 
-/* Generic cards */
-.page-card {
-  background: #fffaf4;
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.04);
-}
+    /* 2. Section Headers (Like the "Past History" image) */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-left: 8px;
+    }
 
-/* Typography */
-.stat-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 600;
-}
+    .section-icon {
+        font-size: 20px;
+    }
 
-.stat-number {
-  font-size: 44px;
-  font-weight: 800;
-  color: var(--accent-600);
-  margin: 10px 0;
-}
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+    }
 
-.card-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
-}
+    .counter-badge {
+        background: #e2e8f0;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+    }
 
-.muted {
-  color: var(--muted);
-}
+    /* 3. Top Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+    }
 
-/* Badges */
-.badge {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-}
+    .stat-card {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 28px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(255,255,255,0.8);
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
 
-.badge.pending {
-  background: rgba(160,82,45,0.12);
-  color: #A0522D;
-}
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-hover);
+    }
 
-.badge.success {
-  background: rgba(60,90,60,0.12);
-  color: #3C5A3C;
-}
+    /* Decorative gradient blob for stat cards */
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50px; right: -50px;
+        width: 100px; height: 100px;
+        background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+        opacity: 0.1;
+        border-radius: 50%;
+    }
 
-/* ===============================
-   LOCATION CARDS
-   =============================== */
+    .stat-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
+        display: flex; justify-content: space-between;
+    }
 
-.location-card {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
+    .stat-value {
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--text-main);
+        line-height: 1;
+        margin-bottom: 8px;
+    }
 
-/* Section */
-.card-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+    .stat-desc {
+        font-size: 14px;
+        color: var(--text-muted);
+    }
 
-/* Boxed content */
-.card-box {
-  background: #f4efe9;
-  border-radius: 14px;
-  padding: 14px;
-  border: 1px solid rgba(90,64,50,0.08);
-}
+    /* 4. Priority List (Styled as clean rows) */
+    .priority-card {
+        background: white;
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
+        padding: 10px; /* Minimal padding, rows handle spacing */
+    }
 
-/* Rows */
-.card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-}
+    .list-row {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 0.5fr;
+        align-items: center;
+        padding: 16px 20px;
+        border-radius: 16px;
+        transition: background 0.2s;
+        border-bottom: 1px solid #f1f5f9;
+    }
 
-.card-row:last-child {
-  border-bottom: none;
-}
+    .list-row:last-child { border-bottom: none; }
+    
+    .list-row:hover {
+        background: #f8fafc;
+    }
 
-.row-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
+    .list-header {
+        background: #f8fafc;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 4px;
+        border-bottom: none;
+    }
 
-.row-sub {
-  font-size: 12px;
-  color: var(--muted);
-}
+    /* 5. Store Grid (The "Past History" Card Style) */
+    .store-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 24px;
+    }
 
-.row-right {
-  text-align: right;
-}
+    .store-card {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 24px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid white;
+        transition: all 0.2s;
+        display: flex; flex-direction: column; height: 100%;
+    }
 
-.row-link {
-  font-size: 11px;
-  color: var(--muted);
-  text-decoration: underline;
-}
+    .store-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--card-hover);
+        border-color: var(--primary-light, #e0e7ff);
+    }
 
-/* History rows */
-.history-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-  padding: 6px 0;
-}
+    .store-header {
+        display: flex; justify-content: space-between; align-items: start;
+        margin-bottom: 20px;
+    }
 
-/* Empty state */
-.empty-state {
-  text-align: center;
-  font-size: 13px;
-  color: var(--muted);
-  padding: 12px 0;
-}
+    .store-name { font-size: 17px; font-weight: 700; color: #1e293b; }
+    
+    /* Clean Status Tag */
+    .status-tag {
+        font-size: 13px;
+        font-weight: 500;
+        color: #64748b;
+    }
+    .status-tag.active { color: #f59e0b; } /* Orange */
+    .status-tag.done { color: #10b981; }   /* Green */
+
+    /* Items inside Store Card */
+    .mini-item {
+        display: flex; gap: 12px; 
+        margin-bottom: 16px; 
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .mini-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .mini-icon {
+        width: 36px; height: 36px;
+        background: #eff6ff;
+        color: var(--primary);
+        border-radius: 10px;
+        display: grid; place-items: center;
+        flex-shrink: 0;
+    }
+
+    .mini-details h4 { font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 2px; }
+    .mini-details p { font-size: 12px; color: #94a3b8; }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #94a3b8;
+        font-size: 13px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 2px dashed #e2e8f0;
+    }
+
+    /* Button Override */
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-small:hover { border-color: var(--primary); color: var(--primary); }
+
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- ===== TOP STATS ===== -->
-<div class="dashboard-grid">
+<div class="dashboard-container">
 
-  <div class="page-card">
-    <div class="stat-label">Total Pending</div>
-    <div class="stat-number">{{ total_pending }}</div>
-    <div class="muted" style="font-size:13px;">Across all locations</div>
-  </div>
-
-  <div class="page-card">
-    <div class="stat-label">Pending by Location</div>
-    <table style="width:100%; margin-top:12px; font-size:14px;">
-      {% for r in pending_by_location %}
-        <tr>
-          <td>{{ r.location__name }}</td>
-          <td style="text-align:right; font-weight:700;">{{ r.count }}</td>
-        </tr>
-      {% empty %}
-        <tr><td class="muted">No pending items</td></tr>
-      {% endfor %}
-    </table>
-  </div>
-
-  <div class="page-card">
-    <div class="stat-label">Latest Activity</div>
-    <div style="margin-top:12px;">
-      {% for r in latest_records %}
-        <div class="card-row">
-          <div>
-            <div class="row-title">{{ r.location.name }}</div>
-            <div class="row-sub">{{ r.date }}</div>
-          </div>
-          <a class="row-link" href="{% url 'record_detail' r.pk %}">View</a>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">
+                <span>Total Pending</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <div class="stat-value">{{ total_pending }}</div>
+            <div class="stat-desc">Requisitions awaiting approval</div>
         </div>
-      {% empty %}
-        <div class="empty-state">No records yet</div>
-      {% endfor %}
+
+        <div class="stat-card">
+            <div class="stat-label">
+                <span>Active Locations</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            </div>
+            <div class="stat-value">{{ pending_by_location|length }}</div>
+            <div class="stat-desc">Stores with open orders</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">
+                <span>Recent Activity</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <div class="stat-desc" style="margin-top: 8px;">
+                {% for r in latest_records|slice:":2" %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+                        <span style="color: #334155;">{{ r.location.name }}</span>
+                        <span style="color: #94a3b8;">{{ r.date|date:"M d" }}</span>
+                    </div>
+                {% empty %}
+                    <span style="color: #94a3b8;">No recent activity</span>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div class="section-header">
+        <span class="section-icon">⚡</span>
+        <span class="section-title">Priority Orders</span>
+        <span class="counter-badge">{{ top5_orders|length }}</span>
+        <div style="flex: 1;"></div>
+        <a href="{% url 'show_all_records' %}" class="btn-small">View All</a>
+    </div>
+
+    <div class="priority-card" style="margin-bottom: 48px;">
+        <div class="list-row list-header">
+            <div>Location & Item</div>
+            <div>Vendor</div>
+            <div>Date</div>
+            <div>Status</div>
+            <div style="text-align: right;">Action</div>
+        </div>
+
+        {% for rec in top5_orders %}
+            <div class="list-row">
+                <div>
+                    <div style="font-weight: 600; color: #1e293b;">{{ rec.location.name }}</div>
+                    <div style="font-size: 12px; color: #64748b;">{{ rec.item.item_name }} × {{ rec.quantity }}</div>
+                </div>
+                <div style="font-size: 14px; color: #475569;">{{ rec.vendor.name }}</div>
+                <div style="font-size: 13px; color: #94a3b8;">{{ rec.date|date:"M d, Y" }}</div>
+                <div>
+                    <span class="status-tag active">Needs Approval</span>
+                </div>
+                <div style="text-align: right;">
+                    <a href="{% url 'record_detail' rec.pk %}" class="btn-small">Review</a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state" style="background: white; border: none;">
+                No priority orders at the moment.
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="section-header">
+        <span class="section-icon">🏬</span> <span class="section-title">Store Overview</span>
+    </div>
+
+    <div class="store-grid">
+        {% for card in location_cards %}
+            <div class="store-card">
+                <div class="store-header">
+                    <div>
+                        <div class="store-name">{{ card.location.name }}</div>
+                        <div style="font-size: 12px; color: #94a3b8;">Updated: Today</div>
+                    </div>
+                    {% if card.pending_count > 0 %}
+                        <span class="status-tag active">{{ card.pending_count }} Pending</span>
+                    {% else %}
+                        <span class="status-tag done">Completed</span>
+                    {% endif %}
+                </div>
+
+                <div style="flex: 1;">
+                    {% for r in card.pending|slice:":3" %}
+                        <div class="mini-item">
+                            <div class="mini-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                            </div>
+                            <div class="mini-details">
+                                <h4>{{ r.item.item_name }}</h4>
+                                <p>{{ r.vendor.name }} • {{ r.quantity }} units</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            All items cleared.
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {% if card.pending_count > 3 %}
+                    <div style="margin-top: 16px; text-align: center; font-size: 12px; color: var(--primary);">
+                        + {{ card.pending_count|add:"-3" }} more items
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 
 </div>
 
-<!-- ===== TOP 5 ORDERS ===== -->
-<section class="page-card" style="margin-bottom:32px;">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <div class="card-title">Top 5 Pending Orders</div>
-      <div class="muted" style="font-size:13px;">Latest requisitions</div>
-    </div>
-    <a href="{% url 'show_all_records' %}" class="btn ghost">View All</a>
-  </div>
-
-  <table style="width:100%; margin-top:18px; font-size:14px;">
-    {% for rec in top5_orders %}
-      <tr>
-        <td>
-          <strong>{{ rec.location.name }}</strong><br>
-          <span class="muted">{{ rec.item.item_name }} × {{ rec.quantity }}</span>
-        </td>
-        <td>{{ rec.vendor.name }}</td>
-        <td>{{ rec.date }}</td>
-        <td><span class="badge pending">Pending</span></td>
-        <td style="text-align:right;">
-          <a class="btn" href="{% url 'record_detail' rec.pk %}">Details</a>
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td class="muted">No pending orders</td></tr>
-    {% endfor %}
-  </table>
-</section>
-
-<!-- ===== LOCATION CARDS ===== -->
-<section class="dashboard-grid">
-
-  {% for card in location_cards %}
-  <article class="page-card location-card">
-
-    <!-- Header -->
-    <div>
-      <div class="card-title">{{ card.location.name }}</div>
-      <div class="muted" style="font-size:12px;">
-        <span style="color:#A0522D; font-weight:600;">
-          {{ card.pending_count }} Pending
-        </span>
-        &bull; {{ card.successful_count }} Done
-      </div>
-    </div>
-
-    <!-- Pending -->
-    <div class="card-section">
-      <div class="stat-label">Pending Items</div>
-      <div class="card-box">
-        {% for r in card.pending|slice:":5" %}
-          <div class="card-row">
-            <div>
-              <div class="row-title">{{ r.vendor.name }}</div>
-              <div class="row-sub">{{ r.item.item_name }} × {{ r.quantity }}</div>
-            </div>
-            <div class="row-right">
-              <span class="badge pending">Pending</span><br>
-              <a class="row-link" href="{% url 'record_detail' r.pk %}">View</a>
-            </div>
-          </div>
-        {% empty %}
-          <div class="empty-state">No pending records</div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- History -->
-    <div class="card-section">
-      <div class="stat-label">Recent History</div>
-      <div class="card-box" style="background:transparent; border:none; padding:4px 0;">
-        {% for r in card.successful|slice:":5" %}
-          <div class="history-row">
-            <span>{{ r.vendor.name }} → {{ r.item.item_name }}</span>
-            <a class="row-link" href="{% url 'record_detail' r.pk %}">View</a>
-          </div>
-        {% empty %}
-          <div class="empty-state">No history available</div>
-        {% endfor %}
-      </div>
-    </div>
-
-  </article>
-  {% endfor %}
-
-</section>
-
 <script>
-  setTimeout(function () {
-    window.location.reload();
-  }, 20000);
+    setTimeout(function () {
+        window.location.reload();
+    }, 30000);
 </script>
 
 {% endblock %}

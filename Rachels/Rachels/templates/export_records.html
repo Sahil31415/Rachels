@@ -1,70 +1,374 @@
 {% extends "base.html" %}
-{% block title %}Export Records{% endblock %}
-{% block content %}
-<div class="page-card" style="max-width:980px;margin:0 auto;padding:22px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-    <div style="display:flex;gap:12px;align-items:center">
-      <div style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent-600),var(--accent));color:#fff;font-weight:800">R</div>
-      <div>
-        <div style="font-weight:800">Record Manager</div>
-        <div class="muted" style="font-size:13px">Export orders to Excel</div>
-      </div>
-    </div>
 
-    <div style="display:flex;gap:8px;align-items:center">
-      <a href="{% url 'show_all_records' %}" class="btn">All Records</a>
-      <a href="{% url 'add_record' %}" class="btn primary">Add Record</a>
+{% block title %}Export Records — Horizon{% endblock %}
+
+{% block head %}
+<style>
+  /* ===============================
+     THEME VARIABLES
+     =============================== */
+  :root {
+    --brand-primary: #4318FF;
+    --brand-hover: #3311db;
+    --text-main: #2B3674;
+    --text-secondary: #A3AED0;
+    --bg-body: #F4F7FE;
+    --bg-card: #ffffff;
+    --bg-input: #F4F7FE;
+    --radius-card: 20px;
+    --radius-input: 16px;
+    --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+  }
+
+  body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .container-fluid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* ===============================
+     HEADER SECTION
+     =============================== */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .header-title h2 {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin: 0 0 6px 0;
+  }
+
+  .header-title p {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-action {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--radius-input);
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: var(--text-main);
+    box-shadow: 0 3px 6px rgba(112, 144, 176, 0.08);
+  }
+
+  .btn-secondary:hover {
+    background: #F4F7FE;
+  }
+
+  .btn-primary-small {
+    background: var(--brand-primary);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(67, 24, 255, 0.25);
+  }
+
+  .btn-primary-small:hover {
+    background: var(--brand-hover);
+    transform: translateY(-1px);
+  }
+
+  /* ===============================
+     EXPORT CARD
+     =============================== */
+  .content-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .export-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 40px;
+    width: 100%;
+    max-width: 800px;
+  }
+
+  .card-title {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #E9EDF7;
+    padding-bottom: 20px;
+  }
+
+  .card-title h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: var(--text-main);
+  }
+
+  .card-title p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Form Grid */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  /* --- INPUT STYLES (Updated) --- */
+  input[type="date"],
+  input[type="text"],
+  /* Added for Manager View */
+  select {
+    height: 50px;
+    padding: 0 20px;
+    border-radius: var(--radius-input);
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    box-sizing: border-box;
+    transition: all 0.2s;
+  }
+
+  input:focus,
+  select:focus {
+    background: #ffffff;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px rgba(67, 24, 255, 0.1);
+  }
+
+  /* Specific Style for Readonly (Manager View) */
+  input[readonly] {
+    background-color: #f8f9fa;
+    /* Slightly darker */
+    color: var(--text-secondary);
+    /* Muted text */
+    cursor: not-allowed;
+    border-color: transparent;
+  }
+
+  input[readonly]:focus {
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  /* Footer / Submit Area */
+  .form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+  }
+
+  .btn-submit {
+    background: var(--brand-primary);
+    color: white;
+    height: 50px;
+    padding: 0 32px;
+    border-radius: var(--radius-input);
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(67, 24, 255, 0.25);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-submit:hover {
+    background: var(--brand-hover);
+    transform: translateY(-2px);
+  }
+
+  .btn-reset {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: 0.2s;
+  }
+
+  .btn-reset:hover {
+    color: var(--text-main);
+  }
+
+  .helper-text {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+
+  .message-box {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(67, 24, 255, 0.05);
+    color: var(--brand-primary);
+  }
+
+  @media(max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-footer {
+      flex-direction: column-reverse;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .btn-submit {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-reset {
+      text-align: center;
+    }
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <header class="page-header">
+    <div class="header-title">
+      <h2>Record Manager</h2>
+      <p>Export your data for analysis</p>
     </div>
+    <div class="header-actions">
+      <a href="{% url 'show_all_records' %}" class="btn-action btn-secondary">
+        <i class="fa-solid fa-list" style="margin-right:8px"></i> All Records
+      </a>
+      <a href="{% url 'add_record' %}" class="btn-action btn-primary-small">
+        <i class="fa-solid fa-plus" style="margin-right:8px"></i> Add Record
+      </a>
+    </div>
+  </header>
+
+  <div class="content-wrapper">
+    <main class="export-card">
+
+      <div class="card-title">
+        <h3>Export Options</h3>
+        <p>Select a date range and filters to generate a CSV report.</p>
+      </div>
+
+      {% if messages %}
+      {% for m in messages %}
+      <div class="message-box">
+        <i class="fa-solid fa-circle-info" style="margin-right: 6px;"></i> {{ m }}
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      <form method="get" action="{% url 'export_excel' %}">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" name="from_date" value="{{ initial.from_date }}">
+          </div>
+
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" name="to_date" value="{{ initial.to_date }}">
+          </div>
+
+          <div class="form-group">
+            <label>Location</label>
+
+            {% if is_admin %}
+            <select name="location" required class="form-control">
+              <option value="">Select Location</option>
+
+              {% for store in stores %}
+              <option value="{{ store.id }}" {% if initial.location|stringformat:"s" == store.id|stringformat:"s" %}
+                selected {% endif %}>
+                {{ store.name }}
+              </option>
+              {% endfor %}
+            </select>
+            {% else %}
+            <input type="hidden" name="location" value="{{ manager_store.id }}">
+            <input type="text" class="form-control" value="{{ manager_store.name }}" readonly>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="">Any Status</option>
+              <option value="Pending" {% if initial.status == "Pending" %}selected{% endif %}>Pending</option>
+              <option value="Completed" {% if initial.status == "Completed" %}selected{% endif %}>Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <div class="helper-text">
+            <i class="fa-regular fa-lightbulb"></i> Tip: Leave dates empty to export all history.
+          </div>
+          <div style="display:flex; gap: 20px; align-items:center;">
+            <a href="{% url 'export_form' %}" class="btn-reset">Reset Filters</a>
+            <button type="submit" class="btn-submit">
+              <i class="fa-solid fa-file-csv"></i> Download CSV
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </main>
   </div>
 
-  <h2 style="margin-top:6px;color:var(--accent-600)">Export Orders</h2>
-  <div class="muted">Select a date range (From — To). Optionally filter by location or status before exporting.</div>
-
-  {% if messages %}
-    <div style="margin-top:12px">
-      {% for message in messages %}
-        <div style="background:rgba(181,90,72,0.06);padding:10px;border-radius:10px;color:#7a2b20;margin-bottom:8px;font-weight:700">{{ message }}</div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <form method="get" action="{% url 'export_excel' %}" style="display:grid;gap:14px;margin-top:14px;max-width:760px">
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <div style="flex:1;min-width:160px">
-        <label for="from_date" style="font-weight:700;color:var(--accent)">From date</label>
-        <input id="from_date" name="from_date" type="date" value="{{ initial.from_date }}" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff" />
-      </div>
-
-      <div style="flex:1;min-width:160px">
-        <label for="to_date" style="font-weight:700;color:var(--accent)">To date</label>
-        <input id="to_date" name="to_date" type="date" value="{{ initial.to_date }}" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff" />
-      </div>
-
-      <div style="flex:1;min-width:160px">
-        <label for="location" style="font-weight:700;color:var(--accent)">Location</label>
-        <select id="location" name="location" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
-          <option value="">All locations</option>
-          <option value="Dulari" {% if initial.location == "Dulari" %}selected{% endif %}>Dulari</option>
-          <option value="Pours and Plates" {% if initial.location == "Pours and Plates" %}selected{% endif %}>Pours and Plates</option>
-          <option value="Rachels" {% if initial.location == "Rachels" %}selected{% endif %}>Rachels</option>
-        </select>
-      </div>
-
-      <div style="flex:1;min-width:150px">
-        <label for="status" style="font-weight:700;color:var(--accent)">Status</label>
-        <select id="status" name="status" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
-          <option value="">Any</option>
-          <option value="Pending" {% if initial.status == "Pending" %}selected{% endif %}>Pending</option>
-          <option value="Completed" {% if initial.status == "Completed" %}selected{% endif %}>Completed</option>
-        </select>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
-      <button type="submit" class="btn primary" style="padding:10px 16px;border-radius:10px;font-weight:800">Download Excel</button>
-      <a href="{% url 'export_form' %}" class="btn" style="background:transparent;border:1px solid rgba(11,11,11,0.06)">Reset</a>
-      <div style="margin-left:auto;color:var(--muted);font-size:13px">Tip: leave dates empty to export all</div>
-    </div>
-  </form>
 </div>
 {% endblock %}

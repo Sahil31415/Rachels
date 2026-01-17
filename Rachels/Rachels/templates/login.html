@@ -1,213 +1,223 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sign in — Rachels Management</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+{% extends 'base.html' %}
 
-  <style>
-    :root{
-      /* The Consistent Beige/Brown Palette */
-      --bg: #F0EAE3;
-      --card: #fbf7f3;
-      --text: #24201C;
-      --muted: #857F72;
-      --accent: #5A4032;      /* Rich Brown */
-      --accent-600: #1C1A17;  /* Charcoal */
-      --radius: 16px;
-      
-      /* Warm Shadows */
-      --shadow-card: 0 20px 40px rgba(90, 64, 50, 0.12);
-      --shadow-input: 0 2px 5px rgba(90, 64, 50, 0.03);
+{% block title %}Sign In — Rachels{% endblock %}
+
+{% block head %}
+<style>
+    /* ================= LOGIN OVERRIDES ================= */
+    /* 1. Reset Dashboard Layout (Hide Sidebar/Topbar) */
+    .sidebar, .topbar, .mobile-toggle { display: none !important; }
+
+    /* 2. Centered Stage */
+    body {
+        overflow: hidden; /* Prevent scroll on login screen */
+        background: #f1f5f9; /* Fallback */
     }
 
-    body{
-      margin:0;
-      padding:20px;
-      font-family:Inter, system-ui, -apple-system, sans-serif;
-      /* Radial focus background */
-      background: radial-gradient(circle at center, #F8F4F0 0%, var(--bg) 100%);
-      color:var(--text);
-      display:flex;
-      flex-direction: column;
-      justify-content:center;
-      align-items:center;
-      min-height:100vh;
+    .main-wrapper {
+        margin: 0 !important; 
+        padding: 0 !important;
+        width: 100vw; 
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        position: relative;
     }
 
-    /* Logo Styling */
-    .brand-logo {
-      width: 64px;
-      height: 64px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-600));
-      color: #fff;
-      font-size: 24px;
-      font-weight: 800;
-      display: grid;
-      place-items: center;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 20px rgba(90, 64, 50, 0.2);
-      animation: fadeInDown 0.8s ease-out;
+    /* 3. The Login Card (Glassmorphism) */
+    .login-glass-panel {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.65); /* Semi-transparent white */
+        backdrop-filter: blur(24px);            /* The "Frosted" effect */
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 24px;
+        padding: 48px 40px;
+        box-shadow: 
+            0 25px 50px -12px rgba(0, 0, 0, 0.1), /* Deep shadow */
+            inset 0 0 0 1px rgba(255, 255, 255, 0.5); /* Inner light ring */
+        position: relative;
+        z-index: 10;
+        animation: floatUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0; /* Start hidden for animation */
     }
 
-    /* Login Card */
-    .card{
-      width:100%;
-      max-width:400px;
-      background:var(--card);
-      padding:40px;
-      border-radius:var(--radius);
-      box-shadow:var(--shadow-card);
-      /* Subtle border opacity */
-      border:1px solid rgba(255,255,255,0.8);
-      animation: slideUp 0.6s ease-out;
+    /* 4. Decorative Elements (The "Mesh" Glow) */
+    .mesh-background {
+        position: absolute;
+        width: 100%; height: 100%;
+        top: 0; left: 0;
+        z-index: 1;
+        overflow: hidden;
     }
 
-    h2 {
-      margin:0 0 8px 0;
-      font-size:26px;
-      font-weight:800;
-      color:var(--accent-600);
-      text-align: center;
+    .glow-blob {
+        position: absolute;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.2) 40%, transparent 70%);
+        filter: blur(60px);
+        border-radius: 50%;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        animation: pulseGlow 8s infinite alternate ease-in-out;
+    }
+
+    .glow-blob-2 {
+        position: absolute;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+        filter: blur(50px);
+        top: 20%; left: 20%;
+        animation: floatBlob 10s infinite alternate ease-in-out;
+    }
+
+    /* 5. Typography & Elements */
+    .brand-section {
+        display: flex; flex-direction: column; align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .logo-large {
+        width: 72px; height: 72px;
+        background: linear-gradient(135deg, var(--primary), #818cf8);
+        border-radius: 20px;
+        display: grid; place-items: center;
+        font-size: 32px; font-weight: 700; color: white;
+        margin-bottom: 24px;
+        box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.4);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .welcome-text h2 { 
+        font-size: 26px; 
+        font-weight: 700; 
+        color: #1e293b; 
+        margin-bottom: 8px; 
+        letter-spacing: -0.5px;
+    }
+    .welcome-text p { font-size: 15px; color: #64748b; }
+
+    /* Form Styling */
+    .input-group { margin-bottom: 20px; text-align: left; }
+    
+    .input-label {
+        display: block; font-size: 12px; font-weight: 600;
+        color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .glass-input {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(203, 213, 225, 0.6);
+        background: rgba(255, 255, 255, 0.5); /* See-through input */
+        font-size: 15px; color: #1e293b;
+        transition: all 0.2s ease;
     }
     
-    .subtitle {
-      color:var(--muted);
-      font-size:14px;
-      margin-bottom:32px;
-      text-align: center;
-      line-height: 1.5;
+    .glass-input:focus {
+        background: white;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+        outline: none;
+        transform: translateY(-1px);
     }
 
-    /* Form Elements */
-    label {
-      display:block;
-      margin-bottom:8px;
-      font-weight:600;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--accent);
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        margin-top: 12px;
+        background: linear-gradient(135deg, var(--primary), #6366f1);
+        color: white;
+        font-weight: 600; font-size: 15px;
+        border-radius: 14px;
+        border: none; cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
     }
-
-    input {
-      width:100%;
-      padding:14px;
-      border-radius:12px;
-      border:1px solid rgba(90, 64, 50, 0.15);
-      background:#fff;
-      margin-bottom:20px;
-      font-size:15px;
-      color: var(--text);
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow-input);
-    }
-
-    input:focus {
-      outline:none;
-      border-color:var(--accent);
-      box-shadow: 0 0 0 3px rgba(90, 64, 50, 0.1);
-      transform: translateY(-1px);
-    }
-
-    /* Button Styling */
-    .btn {
-      width: 100%;
-      padding:14px;
-      border-radius:12px;
-      background:linear-gradient(180deg, var(--accent), var(--accent-600));
-      color:#fff;
-      font-size: 15px;
-      text-decoration:none;
-      font-weight:700;
-      border:none;
-      cursor:pointer;
-      box-shadow: 0 4px 15px rgba(90, 64, 50, 0.2);
-      transition: all 0.2s ease;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(90, 64, 50, 0.25);
-      filter: brightness(1.1);
-    }
-    .btn:active {
-      transform: translateY(0);
+    
+    .btn-submit:hover {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 12px 24px -4px rgba(79, 70, 229, 0.5);
     }
 
     /* Error Box */
-    .error {
-      background: rgba(181,90,72,0.06);
-      padding:12px;
-      border-radius:10px;
-      color:#a63a2e;
-      margin-bottom:24px;
-      font-size: 14px;
-      font-weight:600;
-      border:1px solid rgba(181,90,72,0.15);
-      text-align: center;
-    }
-
-    /* Help Link */
-    .help-wrapper {
-      margin-top: 24px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    a.help-link {
-      color: var(--accent);
-      font-weight: 600;
-      text-decoration: none;
-      transition: 0.2s;
-    }
-    a.help-link:hover {
-      text-decoration: underline;
-      color: var(--accent-600);
+    .error-banner {
+        background: rgba(254, 242, 242, 0.8); 
+        border: 1px solid #fee2e2;
+        color: #b91c1c; 
+        font-size: 13px; font-weight: 500;
+        padding: 12px; border-radius: 12px;
+        margin-bottom: 24px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        animation: shake 0.4s ease-in-out;
     }
 
     /* Animations */
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes floatUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+    
+    @keyframes pulseGlow {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+        100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
     }
 
-  </style>
-</head>
-<body>
+    @keyframes floatBlob {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(40px, -40px); }
+    }
 
-  <div class="brand-logo">R</div>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>
+{% endblock %}
 
-  <div class="card">
-    <h2>Welcome Back</h2>
-    <p class="subtitle">Please enter your details to access the dashboard.</p>
+{% block content %}
+<div class="mesh-background">
+    <div class="glow-blob"></div>
+    <div class="glow-blob-2"></div>
+</div>
+
+<div class="login-glass-panel">
+    <div class="brand-section">
+        <div class="logo-large">R</div>
+        <div class="welcome-text" style="text-align: center;">
+            <h2>Welcome Back</h2>
+            <p>Please enter your details to sign in.</p>
+        </div>
+    </div>
 
     {% if form.errors %}
-      <div class="error">Incorrect username or password.</div>
+        <div class="error-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>Incorrect username or password.</span>
+        </div>
     {% endif %}
 
     <form method="post" action="{% url 'login' %}">
-      {% csrf_token %}
+        {% csrf_token %}
+        
+        <div class="input-group">
+            <label class="input-label" for="id_username">Username</label>
+            <input class="glass-input" id="id_username" name="username" type="text" placeholder="e.g. admin" required autofocus>
+        </div>
 
-      <label for="id_username">Username</label>
-      <input id="id_username" name="username" type="text" placeholder="e.g. admin" required autofocus />
+        <div class="input-group">
+            <label class="input-label" for="id_password">Password</label>
+            <input class="glass-input" id="id_password" name="password" type="password" placeholder="••••••••" required>
+        </div>
 
-      <label for="id_password">Password</label>
-      <input id="id_password" name="password" type="password" placeholder="••••••••" required />
-
-      <button class="btn" type="submit">Sign In</button>
-
-      <div class="help-wrapper">
-        Having trouble? <a href="#" class="help-link">Contact Support</a>
-      </div>
+        <button type="submit" class="btn-submit">Sign In</button>
     </form>
-  </div>
 
-</body>
-</html>
+    <div style="margin-top: 32px; text-align: center; font-size: 13px; color: var(--text-muted);">
+        <a href="#" style="transition: color 0.2s; color: #64748b; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+    </div>
+</div>
+{% endblock %}

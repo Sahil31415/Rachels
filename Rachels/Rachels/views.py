@@ -23,6 +23,8 @@ from openpyxl.utils import get_column_letter
 from django.db.models import Max, Q
 from django.contrib import admin
 from django.db import transaction
+from openpyxl import Workbook
+import re
 
 User = get_user_model()
 
@@ -315,63 +317,93 @@ def _parse_date(s):
 
 @login_required
 def export_form(request):
+    user = request.user
+    is_admin = user.is_superuser
+
+    manager_store = None
+    if not is_admin and hasattr(user, "managerprofile"):
+        manager_store = user.managerprofile.store
+
     initial = {
         'from_date': request.GET.get('from_date', ''),
         'to_date': request.GET.get('to_date', ''),
         'location': request.GET.get('location', ''),
         'status': request.GET.get('status', ''),
     }
-    return render(request, "export_records.html", {'initial': initial})
+
+    stores = Store.objects.filter(is_active=True)
+
+    return render(
+        request,
+        "export_records.html",
+        {
+            'initial': initial,
+            'stores': stores,
+            'is_admin': is_admin,          # ✅ REQUIRED
+            'manager_store': manager_store # optional but safe
+        }
+    )
+
+def _safe_sheet_name(name: str) -> str:
+    # Excel forbids these characters
+    name = re.sub(r'[:\\/?*\[\]]', '', name)
+    return name[:31] or "Sheet"
 
 def export_excel(request):
     data = request.GET if request.method == "GET" else request.POST
 
     from_date = _parse_date(data.get('from_date', '').strip())
     to_date = _parse_date(data.get('to_date', '').strip())
-    location = data.get('location', '').strip()
+    location_id = data.get('location', '').strip()  # STORE ID
     status = data.get('status', '').strip()
 
+    # ---------- VALIDATION ----------
     if from_date and to_date and from_date > to_date:
         messages.error(request, "From date cannot be after To date.")
         return redirect('export_form')
 
+    # ---------- BASE QUERY ----------
     qs = Record.objects.select_related(
-        'vendor', 'item'
-    ).order_by('-date', '-id')  # recent first
+        'vendor', 'location', 'item'
+    ).order_by('-date', '-id')
 
     if from_date:
         qs = qs.filter(date__gte=from_date)
     if to_date:
         qs = qs.filter(date__lte=to_date)
-    if location:
-        qs = qs.filter(location=location)
+    if location_id:
+        qs = qs.filter(location_id=location_id)  # ✅ FK-safe
     if status:
         qs = qs.filter(status__iexact=status)
 
     # ---------- GROUP DATA ----------
-    # location -> vendor -> item -> [records]
+    # Store -> Vendor -> Item -> [records]
     grouped = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
     )
 
     for r in qs:
-        loc = r.location or "Unknown"
-        vendor = r.vendor.name if r.vendor else "Unknown Vendor"
-        item = r.item.item_name if r.item else "Unknown Item"
-        grouped[loc][vendor][item].append(r)
+        store = r.location
+        store_name = store.name if store else "Unknown Location"
+
+        vendor_name = r.vendor.name if r.vendor else "Unknown Vendor"
+        item_name = r.item.item_name if r.item else "Unknown Item"
+
+        grouped[store][vendor_name][item_name].append(r)
 
     # ---------- CREATE EXCEL ----------
-    wb = openpyxl.Workbook()
-    wb.remove(wb.active)  # remove default sheet
+    wb = Workbook()
+    wb.remove(wb.active)
 
     header = ['Order ID', 'Date', 'Status', 'Quantity']
     header_font = Font(bold=True)
 
-    for loc, vendors in grouped.items():
-        ws = wb.create_sheet(title=loc[:31])  # Excel sheet name limit
+    for store, vendors in grouped.items():
+        store_name = store.name if store else "Unknown Location"
+        ws = wb.create_sheet(title=_safe_sheet_name(store_name))
 
         row = 1
-        ws.cell(row=row, column=1, value=f"Location: {loc}")
+        ws.cell(row=row, column=1, value=f"Location: {store_name}")
         ws.cell(row=row, column=1).font = Font(bold=True, size=14)
         row += 2
 
@@ -408,9 +440,9 @@ def export_excel(request):
         for col in ws.columns:
             ws.column_dimensions[get_column_letter(col[0].column)].width = 20
 
+    # ---------- RESPONSE ----------
     fd = from_date.isoformat() if from_date else timezone.localdate().isoformat()
     td = to_date.isoformat() if to_date else timezone.localdate().isoformat()
-
     filename = f"orders-{fd}-{td}.xlsx"
 
     response = HttpResponse(
@@ -492,74 +524,99 @@ def add_record(request):
     user = request.user
     is_admin = user.is_superuser
 
-    # Manager's enforced store (Store or None)
     manager_store = None
     if not is_admin and hasattr(user, "managerprofile"):
         manager_store = user.managerprofile.store
 
-    # 🔒 Permission gate
     if not is_admin and not manager_store:
         return HttpResponseForbidden("You are not allowed to add records.")
 
     if request.method == "POST":
+
         form = RecordForm(request.POST, is_admin=is_admin)
 
-        if form.is_valid():
-            date = form.cleaned_data["date"]
+        if not form.is_valid():
+            messages.error(request, f"Form errors: {form.errors}")
 
-            # ----------------------------
-            # LOCATION ENFORCEMENT
-            # ----------------------------
-            if is_admin:
-                location = form.cleaned_data["location"]   # Store chosen by admin
-            else:
-                location = manager_store                  # FORCE manager store
+        else:
+            date = form.cleaned_data.get("date")
+            location = (
+                form.cleaned_data.get("location")
+                if is_admin
+                else manager_store
+            )
 
             vendors = request.POST.getlist("vendor[]")
             items = request.POST.getlist("item[]")
             quantities = request.POST.getlist("quantity[]")
+            prices = request.POST.getlist("price[]")
+            
+            records_created = []
 
-            for v, i, q in zip(vendors, items, quantities):
-                if not (v and i and q):
-                    continue
+            try:
+                with transaction.atomic():
 
-                record = Record.objects.create(
-                    date=date,
-                    location=location,      # 🔒 Store enforced
-                    vendor_id=v,
-                    item_id=i,
-                    quantity=q,
-                    status="Pending",
-                )
+                    for idx in range(len(vendors)):
 
-                # 🔔 Notify admins only
-                for admin in User.objects.filter(is_superuser=True):
-                    Notification.objects.create(
-                        recipient=admin,
-                        message=f"New order added (#{record.pk})",
-                        location=record.location,
-                        url=reverse("record_detail", kwargs={"pk": record.pk}),
-                    )
+                        v = vendors[idx]
+                        i = items[idx] if idx < len(items) else None
+                        q = quantities[idx] if idx < len(quantities) else None
+                        p = prices[idx] if idx < len(prices) else None
 
-            return redirect("show_all_records")
-        else:
-            print(form.errors)
+                        if not (v and i and q and p):
+                            continue
 
-        # ❌ Invalid form → re-render with errors
+                        try:
+                            quantity = Decimal(q)
+                            unit_price = Decimal(p)
+                        except Exception as e:
+                            raise
+
+                        try:
+                            record = Record.objects.create(
+                                date=date,
+                                location=location,
+                                vendor_id=v,
+                                item_id=i,     # ← stays numeric only
+                                quantity=quantity,
+                                status="Pending",
+                            )
+                            records_created.append(record)
+                        except Exception as e:
+                            raise
+
+                    if not records_created:
+                        raise ValueError("No valid rows were saved")
+
+                    for admin in User.objects.filter(is_superuser=True):
+                        Notification.objects.create(
+                            recipient=admin,
+                            message=f"{len(records_created)} new inventory item(s) added",
+                            location=location,
+                            url=reverse("show_all_records"),
+                        )
+
+                messages.success(request, "Record saved successfully.")
+                return redirect("show_all_records")
+
+            except Exception as e:
+                messages.error(request, f"Save failed: {e}")
 
     else:
-        form = RecordForm()
+        form = RecordForm(is_admin=is_admin)
 
     vendors = Vendor.objects.prefetch_related("items")
 
-    context = {
-        "form": form,
-        "vendors": vendors,
-        "is_admin": is_admin,
-        "manager_store": manager_store,
-    }
-
-    return render(request, "addRecord.html", context)
+    return render(
+        request,
+        "addRecord.html",
+        {
+            "form": form,
+            "vendors": vendors,
+            "is_admin": is_admin,
+            "manager_store": manager_store,
+        }
+    )
 
 @login_required
 def edit_order(request, pk):

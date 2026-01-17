@@ -1,183 +1,306 @@
 {% extends "base.html" %}
 
-{% block title %}Advance Salaries{% endblock %}
+{% block title %}Advance Salaries — Horizon{% endblock %}
 
 {% block head %}
 <style>
-  /* --- Advance List Specific Styles --- */
+    /* ===============================
+       THEME VARIABLES & BASICS
+       =============================== */
+    :root {
+        --brand-primary: #4318FF;
+        --brand-hover: #3311db;
+        
+        --text-main: #2B3674;       /* Deep Navy */
+        --text-secondary: #A3AED0;  /* Cool Gray */
+        
+        --bg-body: #F4F7FE;
+        --bg-card: #ffffff;
+        
+        --radius-card: 20px;
+        --radius-input: 16px;
+        
+        --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+    }
 
-  /* Page Header */
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
-  }
-  
-  .header-content h2 { margin: 0 0 6px 0; color: var(--accent-600); font-size: 26px; font-weight: 800; }
-  .header-content p { margin: 0; color: var(--muted); font-size: 14px; }
+    body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        font-family: 'DM Sans', sans-serif;
+    }
 
-  /* Stat Grid (Matches Dashboard) */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 24px;
-    margin-bottom: 30px;
-  }
+    .container-fluid {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
 
-  .stat-card {
-    background: var(--page);
-    padding: 24px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  
-  .stat-label {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--muted);
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-  
-  .stat-value {
-    font-size: 42px;
-    font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
+    /* ===============================
+       HEADER & STATS
+       =============================== */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 32px;
+    }
 
-  /* Table Card (Matches All Records) */
-  .table-card {
-    background: var(--page);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    border: 1px solid rgba(90, 64, 50, 0.05);
-  }
+    .page-title h2 {
+        font-size: 34px;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+        margin: 0 0 8px 0;
+    }
 
-  .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
+    .page-title p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
 
-  .styled-table thead th {
-    background: rgba(90, 64, 50, 0.04);
-    color: var(--accent);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    padding: 18px 24px;
-    text-align: left;
-    border-bottom: 1px solid rgba(90, 64, 50, 0.1);
-  }
+    /* Primary Action Button */
+    .btn-primary {
+        background: var(--brand-primary);
+        color: #fff;
+        height: 46px;
+        padding: 0 24px;
+        border-radius: var(--radius-input);
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(67, 24, 255, 0.25);
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: var(--brand-hover);
+        transform: translateY(-1px);
+        color: #fff;
+    }
 
-  .styled-table tbody tr {
-    border-bottom: 1px solid rgba(90, 64, 50, 0.06);
-    transition: background 0.15s;
-  }
-  .styled-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.6);
-  }
-  
-  .styled-table td {
-    padding: 18px 24px;
-    vertical-align: middle;
-    color: var(--text);
-  }
+    /* Stats Row */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
 
-  /* Delete Button (Subtle Ghost Danger) */
-  .btn-delete {
-    background: transparent;
-    color: #a63a2e; /* Burnt Red */
-    border: 1px solid rgba(166, 58, 46, 0.15);
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-delete:hover {
-    background: #a63a2e;
-    color: white;
-    box-shadow: 0 4px 12px rgba(166, 58, 46, 0.2);
-  }
+    .stat-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        box-shadow: var(--shadow-card);
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
 
+    .stat-icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(67, 24, 255, 0.1);
+        color: var(--brand-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .stat-content .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    .stat-content .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    /* ===============================
+       TABLE CARD
+       =============================== */
+    .table-container {
+        background: var(--bg-card);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+        padding: 24px;
+        overflow: hidden;
+    }
+
+    .table-header {
+        margin-bottom: 24px;
+    }
+    .table-header h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    /* Table Styling */
+    .horizon-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .horizon-table th {
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 0;
+        border-bottom: 1px solid #E9EDF7;
+    }
+
+    .horizon-table td {
+        padding: 18px 0;
+        vertical-align: middle;
+        border-bottom: 1px solid #f7f9fd;
+        font-size: 14px;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .horizon-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Specific Columns */
+    .col-amount {
+        font-family: 'DM Sans', sans-serif; /* Keep sans for clean look */
+        color: var(--text-main);
+    }
+
+    .col-date {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Delete Action */
+    .btn-icon-danger {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: transparent;
+        color: #E31A1A;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-icon-danger:hover {
+        background: #FFF5F5;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .stats-container { grid-template-columns: 1fr; }
+    }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid">
 
-  <div class="page-header">
-    <div class="header-content">
-      <h2>Advance Salaries</h2>
-      <p>Track and manage employee advance payments.</p>
+    <div class="page-header">
+        <div class="page-title">
+            <h2>Advance Salaries</h2>
+            <p>Track payments and manage employee advances</p>
+        </div>
+        <div>
+            <a class="btn-primary" href="{% url 'advance_add' %}">
+                <i class="fa-solid fa-plus"></i>
+                New Advance
+            </a>
+        </div>
     </div>
-    <div>
-      <a class="btn primary" href="{% url 'advance_add' %}">+ Record New Advance</a>
-    </div>
-  </div>
 
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">Total Disbursed</div>
-      <div class="stat-value">₹{{ total_given }}</div>
-      <div class="muted" style="font-size:13px; margin-top:8px;">Total outstanding advances</div>
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon-box">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Disbursed</div>
+                <div class="stat-value">₹{{ total_given }}</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon-box" style="background: rgba(5, 205, 153, 0.1); color: #05CD99;">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Active Records</div>
+                <div class="stat-value">{{ advances|length }}</div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <main class="table-card">
-    <div style="overflow-x: auto;">
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th>Employee Name</th>
-            <th>Amount</th>
-            <th>Date Paid</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in advances %}
-            <tr>
-              <td>
-                <span style="font-weight:700; font-size:15px; color:var(--text);">{{ a.employee_name }}</span>
-              </td>
-              <td>
-                <span style="font-family:monospace; font-weight:600; font-size:15px; color:var(--accent-600);">₹{{ a.amount }}</span>
-              </td>
-              <td style="color:var(--muted);">
-                {{ a.paid_on }}
-              </td>
-              <td style="text-align:right;">
-                <form method="post" action="{% url 'advance_delete' a.pk %}" onsubmit="return confirm('Are you sure you want to delete this record for {{ a.employee_name }}?');" style="display:inline;">
-                  {% csrf_token %}
-                  <button type="submit" class="btn-delete">Delete</button>
-                </form>
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="4" style="text-align:center; padding:50px; color:var(--muted);">
-                No advance salary records found.
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </main>
+    <main class="table-container">
+        <div class="table-header">
+            <h3>Recent Advances</h3>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="horizon-table">
+                <thead>
+                    <tr>
+                        <th width="35%">Employee Name</th>
+                        <th width="25%">Amount</th>
+                        <th width="25%">Date Paid</th>
+                        <th width="15%" style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in advances %}
+                    <tr>
+                        <td>
+                            {{ a.employee_name }}
+                        </td>
+                        <td class="col-amount">
+                            ₹{{ a.amount }}
+                        </td>
+                        <td class="col-date">
+                            {{ a.paid_on }}
+                        </td>
+                        <td style="text-align:right;">
+                            <form method="post" action="{% url 'advance_delete' a.pk %}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this record for {{ a.employee_name }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon-danger" title="Delete Record">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align:center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                            No advance salary records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
 
 </div>
 {% endblock %}

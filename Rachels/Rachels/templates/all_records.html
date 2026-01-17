@@ -1,112 +1,389 @@
 {% extends "base.html" %}
-{% block title %}All Records{% endblock %}
+
+{% block title %}All Records — Rachels{% endblock %}
+
+{% block head %}
+<style>
+    /* ================= MODERN THEME VARIABLES ================= */
+    :root {
+        --primary: #8a5a44;       /* Earthy Brown */
+        --primary-light: #f4ece9; /* Very light brown for backgrounds */
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-light: #f1f5f9;
+        
+        --card-bg: #ffffff;
+        --card-radius: 24px;
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Container matches Dashboard width */
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 60px;
+    }
+
+    /* 1. PAGE HEADER */
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin-bottom: 32px;
+        padding: 0 8px;
+    }
+
+    .header-title h1 {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+    .header-title p {
+        margin: 6px 0 0 0;
+        color: var(--text-muted);
+        font-size: 15px;
+    }
+
+    /* 2. CONTROLS BAR (Floating) */
+    .controls-bar {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 16px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 32px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        flex: 1;
+        align-items: center;
+    }
+
+    /* Modern Inputs */
+    .modern-input, .modern-select {
+        height: 44px;
+        padding: 0 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 14px;
+        color: var(--text-main);
+        background: #f8fafc;
+        transition: all 0.2s;
+        outline: none;
+    }
+    .modern-input:focus, .modern-select:focus {
+        background: #fff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(138, 90, 68, 0.1);
+    }
+    .search-input { min-width: 280px; }
+
+    /* Modern Buttons */
+    .btn-modern {
+        height: 44px;
+        padding: 0 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: 1px solid transparent;
+    }
+
+    .btn-primary { 
+        background: var(--primary); 
+        color: white; 
+        box-shadow: 0 4px 12px rgba(138, 90, 68, 0.2);
+    }
+    .btn-primary:hover { 
+        transform: translateY(-1px); 
+        box-shadow: 0 6px 16px rgba(138, 90, 68, 0.3); 
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1px solid #e2e8f0;
+    }
+    .btn-ghost:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: white;
+    }
+
+    /* 3. TABLE CARD */
+    .table-card {
+        background: var(--card-bg);
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
+        overflow: hidden; /* Clips the corners */
+        border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .modern-table th {
+        background: #f8fafc;
+        color: #94a3b8;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 18px 24px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .modern-table td {
+        padding: 20px 24px;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-light);
+        vertical-align: middle;
+    }
+    
+    .modern-table tr:last-child td { border-bottom: none; }
+    .modern-table tr:hover td { background: #fcfcfc; }
+
+    /* 4. STATUS BADGES */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    /* Pending: Orange/Warm */
+    .status-pending { background: #fff7ed; color: #c2410c; }
+    /* Completed: Green */
+    .status-completed { background: #f0fdf4; color: #15803d; }
+    /* Default: Grey */
+    .status-default { background: #f1f5f9; color: #475569; }
+
+    /* 5. ACTION ICONS */
+    .action-row { display: flex; justify-content: flex-end; gap: 8px; }
+    
+    .btn-icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        display: grid; place-items: center;
+        color: #94a3b8;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-icon:hover { background: #f1f5f9; color: var(--primary); }
+    
+    .btn-icon.approve:hover { background: #f0fdf4; color: #15803d; }
+    .btn-icon.delete:hover { background: #fef2f2; color: #dc2626; }
+
+    /* 6. PAGINATION */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 40px;
+    }
+    
+    .page-link {
+        width: 40px; height: 40px;
+        display: grid; place-items: center;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .page-link:hover { border-color: var(--primary); color: var(--primary); }
+    .page-link.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(138, 90, 68, 0.3); }
+
+    /* Empty State */
+    .empty-state {
+        padding: 60px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="page-card" style="padding:20px">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-    <div>
-      <h2 style="margin:0 0 6px 0">All Records</h2>
-      <div class="muted" style="font-size:13px">Browse, filter and manage orders</div>
+<div class="page-container">
+
+    <div class="header-section">
+        <div class="header-title">
+            <h1>All Records</h1>
+            <p>View and manage inventory history across all locations.</p>
+        </div>
+        <div>
+            <a href="{% url 'add_record' %}" class="btn-modern btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Add Record</span>
+            </a>
+        </div>
     </div>
 
-    <div style="display:flex;gap:8px;align-items:center">
-      <a href="{% url 'export_form' %}" class="btn">Export</a>
-      <a href="{% url 'Home' %}" class="btn">Dashboard</a>
-      <a href="{% url 'add_record' %}" class="btn primary">Add Record</a>
+    <div class="controls-bar">
+        <form method="get" class="filter-group">
+            <input type="search" name="q" class="modern-input search-input" 
+                   placeholder="Search items, vendors..." 
+                   value="{{ request.GET.q|default:'' }}">
+
+            <select name="location" class="modern-select">
+                <option value="">All Locations</option>
+                <option value="Dulari" {% if request.GET.location == "Dulari" %}selected{% endif %}>Dulari</option>
+                <option value="Pours and Plates" {% if request.GET.location == "Pours and Plates" %}selected{% endif %}>Pours & Plates</option>
+                <option value="Rachels" {% if request.GET.location == "Rachels" %}selected{% endif %}>Rachels</option>
+            </select>
+
+            <select name="status" class="modern-select">
+                <option value="">All Statuses</option>
+                <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
+                <option value="Completed" {% if request.GET.status == "Completed" %}selected{% endif %}>Completed</option>
+            </select>
+
+            <button type="submit" class="btn-modern btn-ghost" style="height: 44px; padding: 0 16px;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="margin:0;"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </button>
+
+            {% if request.GET.q or request.GET.location or request.GET.status %}
+                <a href="{% url 'show_all_records' %}" style="font-size: 13px; color: var(--text-muted); text-decoration: underline;">Reset</a>
+            {% endif %}
+        </form>
+
+        <a href="{% url 'export_form' %}" class="btn-modern btn-ghost">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Export</span>
+        </a>
     </div>
-  </div>
 
-  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-    <input type="search" name="q" placeholder="Search details..." value="{{ request.GET.q|default:'' }}" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff;min-width:180px" />
+    <div class="table-card">
+        <div style="overflow-x: auto;">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Item Details</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td style="color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums;">
+                            {{ r.date|date:"M d, Y" }}
+                        </td>
 
-    <select name="location" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
-      <option value="">All Locations</option>
-      <option value="Dulari" {% if request.GET.location == "Dulari" %}selected{% endif %}>Dulari</option>
-      <option value="Pours and Plates" {% if request.GET.location == "Pours and Plates" %}selected{% endif %}>Pours and Plates</option>
-      <option value="Rachels" {% if request.GET.location == "Rachels" %}selected{% endif %}>Rachels</option>
-    </select>
+                        <td>
+                            <span style="font-weight: 600; color: var(--text-main);">{{ r.location }}</span>
+                        </td>
 
-    <select name="status" style="padding:10px;border-radius:10px;border:1px solid rgba(11,11,11,0.08);background:#fff">
-      <option value="">Any Status</option>
-      <option value="Pending" {% if request.GET.status == "Pending" %}selected{% endif %}>Pending</option>
-      <option value="Completed" {% if request.GET.status == "Completed" %}selected{% endif %}>Completed</option>
-    </select>
+                        <td>
+                            <div style="font-weight: 600; font-size: 15px;">{{ r.item.item_name }}</div>
+                            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                                {{ r.vendor.name }} • {{ r.quantity }} units
+                            </div>
+                        </td>
 
-    <button type="submit" class="btn" style="background:linear-gradient(180deg,var(--accent),var(--accent-600));color:#fff;border:none;padding:10px 14px;border-radius:10px;font-weight:800">Apply</button>
-    <a href="{% url 'show_all_records' %}" class="btn" style="background:transparent;border:1px solid rgba(11,11,11,0.06);color:var(--muted)">Reset</a>
-  </form>
+                        <td>
+                            {% if r.status|lower == "pending" %}
+                                <span class="status-badge status-pending">● Pending</span>
+                            {% elif r.status|lower == "completed" %}
+                                <span class="status-badge status-completed">✓ Completed</span>
+                            {% else %}
+                                <span class="status-badge status-default">{{ r.status }}</span>
+                            {% endif %}
+                        </td>
 
-  <div style="overflow:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <thead>
-        <tr>
-          <th style="text-align:left;padding:12px;color:var(--accent-600)">Date</th>
-          <th style="text-align:left;padding:12px;color:var(--accent-600)">Location</th>
-          <th style="text-align:left;padding:12px;color:var(--accent-600)">Status</th>
-          <th style="text-align:left;padding:12px;color:var(--accent-600)">Details</th>
-          <th style="padding:12px"></th>
-        </tr>
-      </thead>
+                        <td>
+                            <div class="action-row">
+                                <a href="{% url 'record_detail' r.pk %}" class="btn-icon" title="View Details">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                                </a>
 
-      <tbody>
-        {% for r in records %}
-          <tr style="border-top:1px solid rgba(11,11,11,0.03)">
-            <td style="padding:12px;vertical-align:top">{{ r.date }}</td>
-            <td style="padding:12px;vertical-align:top">{{ r.location }}</td>
-            <td style="padding:12px;vertical-align:top">
-              {% if r.status|lower == "pending" %}
-                <span style="padding:6px 10px;border-radius:999px;background:rgba(181,90,72,0.08);color:#7a2b20;font-weight:700">Pending</span>
-              {% elif r.status|lower == "completed" %}
-                <span style="padding:6px 10px;border-radius:999px;background:rgba(39,110,74,0.06);color:var(--accent);font-weight:700">Completed</span>
-              {% else %}
-                <span style="padding:6px 10px;border-radius:999px;background:rgba(11,11,11,0.04);color:#334155;font-weight:700">{{ r.status }}</span>
-              {% endif %}
-            </td>
-            <td style="padding:12px;vertical-align:top">{{ r.vendor.name }} → {{ r.item.item_name }} × {{ r.quantity }}</td>
-            <td style="padding:12px;vertical-align:top">
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <a class="btn" href="{% url 'record_detail' r.pk %}">View</a>
+                                {% if is_admin %}
+                                    <form method="post" action="{% url 'mark_completed' r.pk %}" style="margin:0;">{% csrf_token %}
+                                        <button type="submit" class="btn-icon approve" title="Mark as Completed">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        </button>
+                                    </form>
 
-                {% if is_admin %}
-                  <form method="post" action="{% url 'mark_completed' r.pk %}" style="display:inline">{% csrf_token %}
-                    <button class="btn" type="submit">Mark Completed</button>
-                  </form>
+                                    <form method="post" action="{% url 'delete_record' r.pk %}" onsubmit="return confirm('Delete this record permanently?');" style="margin:0;">{% csrf_token %}
+                                        <button type="submit" class="btn-icon delete" title="Delete">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" style="margin-bottom: 16px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                <p>No records found matching your filters.</p>
+                                <a href="{% url 'show_all_records' %}" style="font-size:14px; color: var(--primary);">Clear Filters</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                  <form method="post" action="{% url 'delete_record' r.pk %}" style="display:inline" onsubmit="return confirm('Delete?')">{% csrf_token %}
-                    <button class="btn" style="background:#b54747;color:#fff;border:none">Delete</button>
-                  </form>
-                {% endif %}
-              </div>
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted)">No records found</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  {% if page_obj %}
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      {% if page_obj.has_previous %}
-        <a class="btn" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Prev</a>
-      {% endif %}
-
-      {% for item in pagination_items %}
-        {% if item == '...' %}
-          <span style="padding:8px 10px;color:var(--muted)">…</span>
-        {% else %}
-          {% if item == page_obj.number %}
-            <span style="padding:8px 10px;background:var(--accent-600);color:#fff;border-radius:8px">{{ item }}</span>
-          {% else %}
-            <a class="btn" href="?page={{ item }}">{{ item }}</a>
-          {% endif %}
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
         {% endif %}
-      {% endfor %}
 
-      {% if page_obj.has_next %}
-        <a class="btn" href="?page={{ page_obj.next_page_number }}">Next</a>
-      {% endif %}
+        {% for item in pagination_items %}
+            {% if item == '...' %}
+                <span style="display:grid; place-items:center; color: var(--text-muted);">...</span>
+            {% else %}
+                <a class="page-link {% if item == page_obj.number %}active{% endif %}" 
+                   href="?page={{ item }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                   {{ item }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.location %}&location={{ request.GET.location }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+        {% endif %}
     </div>
-  {% endif %}
-</main>
+    {% endif %}
+
+</div>
 {% endblock %}
