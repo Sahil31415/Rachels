@@ -3,221 +3,237 @@
 {% block title %}Sign In — Rachels{% endblock %}
 
 {% block head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
-    /* ================= LOGIN OVERRIDES ================= */
-    /* 1. Reset Dashboard Layout (Hide Sidebar/Topbar) */
-    .sidebar, .topbar, .mobile-toggle { display: none !important; }
-
-    /* 2. Centered Stage */
-    body {
-        overflow: hidden; /* Prevent scroll on login screen */
-        background: #f1f5f9; /* Fallback */
+    /* ===============================
+       THEME VARIABLES
+       =============================== */
+    :root {
+        --brand-primary: #4318FF;
+        --brand-hover: #3311db;
+        --text-main: #2B3674;
+        --text-secondary: #A3AED0;
+        --bg-body: #F4F7FE;
+        --bg-input: #F4F7FE;
+        --radius-card: 20px;
+        --radius-input: 16px;
     }
 
-    .main-wrapper {
-        margin: 0 !important; 
-        padding: 0 !important;
-        width: 100vw; 
+    /* ===============================
+       LAYOUT OVERLAY (The Fix)
+       =============================== */
+    /* This breaks the login form out of the dashboard container */
+    .login-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
         height: 100vh;
-        display: grid;
-        place-items: center;
-        position: relative;
+        background-color: var(--bg-body);
+        z-index: 9999; /* Sit on top of everything */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow-y: auto; /* Allow scroll on small screens */
     }
 
-    /* 3. The Login Card (Glassmorphism) */
-    .login-glass-panel {
+    /* ===============================
+       LOGIN CARD STYLE
+       =============================== */
+    .login-card {
+        background: #ffffff;
         width: 100%;
-        max-width: 420px;
-        background: rgba(255, 255, 255, 0.65); /* Semi-transparent white */
-        backdrop-filter: blur(24px);            /* The "Frosted" effect */
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: 24px;
+        max-width: 420px; /* Standard width for login cards */
+        border-radius: 24px; /* Slightly rounder */
         padding: 48px 40px;
-        box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.1), /* Deep shadow */
-            inset 0 0 0 1px rgba(255, 255, 255, 0.5); /* Inner light ring */
-        position: relative;
-        z-index: 10;
-        animation: floatUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        opacity: 0; /* Start hidden for animation */
+        box-shadow: 0px 20px 50px rgba(112, 144, 176, 0.12); /* Softer shadow */
+        text-align: left;
+        margin: 20px; /* Margin for mobile spacing */
     }
 
-    /* 4. Decorative Elements (The "Mesh" Glow) */
-    .mesh-background {
-        position: absolute;
-        width: 100%; height: 100%;
-        top: 0; left: 0;
-        z-index: 1;
-        overflow: hidden;
-    }
-
-    .glow-blob {
-        position: absolute;
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.2) 40%, transparent 70%);
-        filter: blur(60px);
-        border-radius: 50%;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        animation: pulseGlow 8s infinite alternate ease-in-out;
-    }
-
-    .glow-blob-2 {
-        position: absolute;
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
-        filter: blur(50px);
-        top: 20%; left: 20%;
-        animation: floatBlob 10s infinite alternate ease-in-out;
-    }
-
-    /* 5. Typography & Elements */
-    .brand-section {
-        display: flex; flex-direction: column; align-items: center;
+    /* Header Section */
+    .brand-header {
         margin-bottom: 32px;
     }
 
-    .logo-large {
-        width: 72px; height: 72px;
-        background: linear-gradient(135deg, var(--primary), #818cf8);
-        border-radius: 20px;
-        display: grid; place-items: center;
-        font-size: 32px; font-weight: 700; color: white;
+    .brand-header h1 {
+        color: var(--text-main);
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.02em;
+    }
+
+    .brand-header p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* Form Elements */
+    .form-group {
         margin-bottom: 24px;
-        box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.4);
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .welcome-text h2 { 
-        font-size: 26px; 
-        font-weight: 700; 
-        color: #1e293b; 
-        margin-bottom: 8px; 
-        letter-spacing: -0.5px;
+    label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-main);
+        margin-bottom: 10px;
     }
-    .welcome-text p { font-size: 15px; color: #64748b; }
-
-    /* Form Styling */
-    .input-group { margin-bottom: 20px; text-align: left; }
     
-    .input-label {
-        display: block; font-size: 12px; font-weight: 600;
-        color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    label span {
+        color: var(--brand-primary);
     }
 
-    .glass-input {
+    input[type="text"],
+    input[type="password"] {
         width: 100%;
-        padding: 14px 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(203, 213, 225, 0.6);
-        background: rgba(255, 255, 255, 0.5); /* See-through input */
-        font-size: 15px; color: #1e293b;
+        height: 50px;
+        padding: 0 20px;
+        box-sizing: border-box;
+        border-radius: var(--radius-input);
+        border: 1px solid transparent; /* No border by default */
+        background-color: var(--bg-input);
+        color: var(--text-main);
+        font-size: 14px;
+        font-family: 'DM Sans', sans-serif;
         transition: all 0.2s ease;
-    }
-    
-    .glass-input:focus {
-        background: white;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
         outline: none;
-        transform: translateY(-1px);
     }
 
+    input:focus {
+        background-color: #ffffff;
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 4px rgba(67, 24, 255, 0.1);
+    }
+
+    ::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.6;
+    }
+
+    /* Actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-main);
+        cursor: pointer;
+    }
+
+    .checkbox-container input {
+        accent-color: var(--brand-primary);
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        color: var(--brand-primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    /* Submit Button */
     .btn-submit {
         width: 100%;
-        padding: 16px;
-        margin-top: 12px;
-        background: linear-gradient(135deg, var(--primary), #6366f1);
-        color: white;
-        font-weight: 600; font-size: 15px;
-        border-radius: 14px;
-        border: none; cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+        height: 50px;
+        background-color: var(--brand-primary);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-input);
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 10px rgba(67, 24, 255, 0.25);
     }
-    
+
     .btn-submit:hover {
-        transform: translateY(-2px) scale(1.01);
-        box-shadow: 0 12px 24px -4px rgba(79, 70, 229, 0.5);
+        background-color: var(--brand-hover);
+        transform: translateY(-2px);
     }
 
-    /* Error Box */
+    /* Error Banner */
     .error-banner {
-        background: rgba(254, 242, 242, 0.8); 
-        border: 1px solid #fee2e2;
-        color: #b91c1c; 
-        font-size: 13px; font-weight: 500;
-        padding: 12px; border-radius: 12px;
+        background-color: #fff5f5;
+        border-left: 4px solid #fc8181;
+        padding: 12px 16px;
         margin-bottom: 24px;
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        animation: shake 0.4s ease-in-out;
+        border-radius: 4px;
+        color: #c53030;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    /* Animations */
-    @keyframes floatUp {
-        from { opacity: 0; transform: translateY(40px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    /* Footer Text */
+    .footer-text {
+        margin-top: 24px;
+        text-align: left; /* Aligned left to match header in Horizon */
+        font-size: 14px;
+        color: var(--text-secondary);
     }
-    
-    @keyframes pulseGlow {
-        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
-        100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
-    }
-
-    @keyframes floatBlob {
-        0% { transform: translate(0, 0); }
-        100% { transform: translate(40px, -40px); }
-    }
-
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
+    .footer-text a {
+        color: var(--brand-primary);
+        font-weight: 700;
+        text-decoration: none;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="mesh-background">
-    <div class="glow-blob"></div>
-    <div class="glow-blob-2"></div>
-</div>
-
-<div class="login-glass-panel">
-    <div class="brand-section">
-        <div class="logo-large">R</div>
-        <div class="welcome-text" style="text-align: center;">
-            <h2>Welcome Back</h2>
-            <p>Please enter your details to sign in.</p>
-        </div>
-    </div>
-
-    {% if form.errors %}
-        <div class="error-banner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>Incorrect username or password.</span>
-        </div>
-    {% endif %}
-
-    <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
+<div class="login-overlay">
+    <div class="login-card">
         
-        <div class="input-group">
-            <label class="input-label" for="id_username">Username</label>
-            <input class="glass-input" id="id_username" name="username" type="text" placeholder="e.g. admin" required autofocus>
+        <div class="brand-header">
+            <h1>Sign In</h1>
+            <p>Enter your username and password to sign in!</p>
         </div>
 
-        <div class="input-group">
-            <label class="input-label" for="id_password">Password</label>
-            <input class="glass-input" id="id_password" name="password" type="password" placeholder="••••••••" required>
-        </div>
+        {% if form.errors %}
+            <div class="error-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Incorrect username or password.</span>
+            </div>
+        {% endif %}
 
-        <button type="submit" class="btn-submit">Sign In</button>
-    </form>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
 
-    <div style="margin-top: 32px; text-align: center; font-size: 13px; color: var(--text-muted);">
-        <a href="#" style="transition: color 0.2s; color: #64748b; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+            <div class="form-group">
+                <label for="id_username">Username<span>*</span></label>
+                <input type="text" id="id_username" name="username" placeholder="Username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">Password<span>*</span></label>
+                <input type="password" id="id_password" name="password" placeholder="Min. 8 characters" required>
+            </div>
+
+            <div class="form-actions">
+                <label class="checkbox-container">
+                    <input type="checkbox" name="remember_me">
+                    Keep me logged in
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
     </div>
 </div>
 {% endblock %}
