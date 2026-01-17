@@ -223,14 +223,11 @@
         {% if is_admin %}
         {{ form.location }}
         {% else %}
-        <!-- Display store name -->
-        <input type="text" class="form-control" value="{{ manager_location.name }}" readonly>
-
-        <!-- Submit store ID -->
-        <input type="hidden" name="location" value="{{ manager_location.id }}">
+        <input type="text" class="form-control" value="{{ manager_store.name }}" readonly>
         {% endif %}
       </div>
     </div>
+
 
     <label style="margin-bottom:12px;">Item Details</label>
 

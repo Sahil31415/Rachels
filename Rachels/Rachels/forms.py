@@ -3,7 +3,6 @@ from .models import *
 from datetime import date
 
 class RecordForm(forms.ModelForm):
-
     class Meta:
         model = Record
         fields = ["date", "location"]
@@ -18,11 +17,14 @@ class RecordForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        is_admin = kwargs.pop("is_admin", False)
         super().__init__(*args, **kwargs)
 
         today = date.today()
 
-        # ✅ Date: auto-set & locked to today
+        # ----------------------------
+        # DATE: auto-set & locked
+        # ----------------------------
         self.fields["date"].initial = today
         self.fields["date"].widget.attrs.update({
             "min": today,
@@ -30,18 +32,25 @@ class RecordForm(forms.ModelForm):
             "readonly": True
         })
 
-        # ✅ Location: only active stores from DB
-        self.fields["location"].queryset = Store.objects.filter(is_active=True)
+        # ----------------------------
+        # LOCATION HANDLING
+        # ----------------------------
+        if is_admin:
+            # Admin → selectable location
+            self.fields["location"].queryset = Store.objects.filter(is_active=True)
+        else:
+            # Manager → no location field at all
+            self.fields.pop("location")
 
     def clean_date(self):
         selected_date = self.cleaned_data.get("date")
         today = date.today()
 
-        # ✅ HARD backend validation (cannot be bypassed)
         if selected_date != today:
             raise forms.ValidationError("Date must be today's date.")
 
         return selected_date
+    
 class VendorForm(forms.ModelForm):
     class Meta:
         model = Vendor

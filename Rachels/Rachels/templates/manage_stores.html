@@ -11,9 +11,11 @@
 <form method="post" class="page-card" style="margin-bottom:30px;">
   {% csrf_token %}
 
+  <h3>Add Store & Manager</h3>
+
   <div style="margin-bottom:16px;">
     <label>Store name</label>
-    {{ form.name }}
+    {{ form.store_name }}
   </div>
 
   <div style="margin-bottom:16px;">
@@ -22,8 +24,28 @@
     </label>
   </div>
 
+  <hr style="margin:20px 0;">
+
+  <h4>Manager Login</h4>
+
+  <div style="margin-bottom:16px;">
+    <label>Username</label>
+    {{ form.manager_username }}
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <label>Email</label>
+    {{ form.manager_email }}
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <label>Password</label>
+    {{ form.manager_password }}
+  </div>
+
   <button type="submit" class="btn primary">Add Store</button>
 </form>
+
 
 <div class="page-card">
   <h3>Existing Stores</h3>

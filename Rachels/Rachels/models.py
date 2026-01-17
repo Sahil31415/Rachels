@@ -73,19 +73,24 @@ class AdvanceSalary(models.Model):
         return f"{self.employee_name} — {self.amount} on {self.paid_on}"
 
 class ManagerProfile(models.Model):
-    LOCATION_CHOICES = [
-        ('Dulari', 'Dulari'),
-        ('Pours and Plates', 'Pours and Plates'),
-        ('Rachels', 'Rachels'),
-        ('Rachels1', 'Rachels1'),
-        ('Rachels2', 'Rachels2'),
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='managerprofile')
-    location = models.CharField(max_length=64, choices=LOCATION_CHOICES, blank=True, null=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='managerprofile'
+    )
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='managers'
+    )
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user.username} — {self.location or '(no location)'}"
+        if self.store:
+            return f"{self.user.username} — {self.store.name}"
+        return f"{self.user.username} — (no store)"
 
 @receiver(post_save, sender=User)
 def ensure_manager_profile(sender, instance, created, **kwargs):

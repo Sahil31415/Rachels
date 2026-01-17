@@ -22,6 +22,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from django.db.models import Max, Q
 from django.contrib import admin
+from django.db import transaction
 
 User = get_user_model()
 
@@ -39,16 +40,15 @@ def user_in_manager_group_for_location(user, location):
     grp_name = f"manager_{_normalize_location_for_group(location)}"
     return user.groups.filter(name=grp_name).exists()
 
-def user_can_view_location(user, record_location):
-    # Superuser: full access
+def user_can_view_location(user, store):
+    # Admin can see everything
     if user.is_superuser:
         return True
 
-    # Manager: only their assigned location
+    # Manager can only see their own store
     if hasattr(user, "managerprofile"):
-        return user.managerprofile.location == record_location
+        return user.managerprofile.store == store
 
-    # Default: no access
     return False
 
 def admin_required(view_func):
@@ -58,24 +58,39 @@ def admin_required(view_func):
 def home(request):
     user = request.user
 
+    # ----------------------------
+    # ROLE / STORE SCOPE
+    # ----------------------------
+    user_store = None
+    if not user.is_superuser and hasattr(user, "managerprofile"):
+        user_store = user.managerprofile.store
+
+    # ----------------------------
     # Check if Record has status field (backward-safe)
+    # ----------------------------
     field_names = [f.name for f in Record._meta.fields]
     has_status = "status" in field_names
+
+    base_qs = Record.objects.all()
+
+    # 🔒 Restrict managers to their store
+    if user_store:
+        base_qs = base_qs.filter(location=user_store)
 
     # ----------------------------
     # TOTAL PENDING
     # ----------------------------
     if has_status:
-        total_pending = Record.objects.filter(status__iexact="Pending").count()
+        total_pending = base_qs.filter(status__iexact="Pending").count()
     else:
-        total_pending = Record.objects.count()
+        total_pending = base_qs.count()
 
     # ----------------------------
     # PENDING BY STORE
     # ----------------------------
     if has_status:
         pending_by_location = (
-            Record.objects
+            base_qs
             .filter(status__iexact="Pending")
             .values("location__name")
             .annotate(count=Count("id"))
@@ -83,7 +98,7 @@ def home(request):
         )
     else:
         pending_by_location = (
-            Record.objects
+            base_qs
             .values("location__name")
             .annotate(count=Count("id"))
             .order_by("-count", "location__name")
@@ -94,14 +109,14 @@ def home(request):
     # ----------------------------
     if has_status:
         top5_orders = (
-            Record.objects
+            base_qs
             .filter(status__iexact="Pending")
             .select_related("location")
             .order_by("-date", "-id")[:5]
         )
     else:
         top5_orders = (
-            Record.objects
+            base_qs
             .select_related("location")
             .order_by("-date", "-id")[:5]
         )
@@ -110,46 +125,45 @@ def home(request):
     # LATEST RECORDS
     # ----------------------------
     latest_records = (
-        Record.objects
+        base_qs
         .select_related("location")
         .order_by("-date", "-id")[:5]
     )
 
     # ----------------------------
-    # STORE CARDS (NO HARDCODING)
+    # STORE CARDS
     # ----------------------------
-    stores = Store.objects.filter(is_active=True).order_by("name")
+    if user_store:
+        stores = Store.objects.filter(id=user_store.id, is_active=True)
+    else:
+        stores = Store.objects.filter(is_active=True)
 
     location_cards = []
 
     for store in stores:
-        # 🔒 Permission check
-        if not user_can_view_location(user, store):
-            continue
-
         if has_status:
             pending_base = (
-                Record.objects
+                base_qs
                 .filter(location=store, status__iexact="Pending")
                 .order_by("-date", "-id")
             )
 
             successful_base = (
-                Record.objects
+                base_qs
                 .filter(location=store)
                 .exclude(status__iexact="Pending")
                 .order_by("-date", "-id")
             )
         else:
             pending_base = (
-                Record.objects
+                base_qs
                 .filter(location=store)
                 .order_by("-date", "-id")
             )
             successful_base = Record.objects.none()
 
         location_cards.append({
-            "location": store,                # Store object
+            "location": store,
             "pending": list(pending_base[:5]),
             "successful": list(successful_base[:5]),
             "pending_count": pending_base.count(),
@@ -168,36 +182,66 @@ def home(request):
 
 @login_required
 def show_all_records(request):
+    user = request.user
+
+    # ----------------------------
+    # ROLE / STORE SCOPE
+    # ----------------------------
+    user_store = None
+    if not user.is_superuser and hasattr(user, "managerprofile"):
+        user_store = user.managerprofile.store
+
+    # ----------------------------
+    # BASE QUERYSET
+    # ----------------------------
     qs = Record.objects.all().order_by('-date', '-id')
 
-    # text search (your model previously referenced "details" — if absent remove this)
+    # 🔒 Restrict managers to their store
+    if user_store:
+        qs = qs.filter(location=user_store)
+
+    # ----------------------------
+    # TEXT SEARCH
+    # ----------------------------
     q = request.GET.get('q', '').strip()
     if q:
         qs = qs.filter(details__icontains=q)
 
+    # ----------------------------
+    # LOCATION FILTER (admins only)
+    # ----------------------------
     location = request.GET.get('location', '').strip()
-    if location:
-        qs = qs.filter(location=location)
+    if location and not user_store:
+        qs = qs.filter(location__name__iexact=location)
 
+    # ----------------------------
+    # STATUS FILTER
+    # ----------------------------
     status = request.GET.get('status', '').strip()
     if status:
         qs = qs.filter(status__iexact=status)
 
+    # ----------------------------
+    # MONTH FILTER
+    # ----------------------------
     if request.GET.get('month') == 'this':
         today = date.today()
         qs = qs.filter(date__year=today.year, date__month=today.month)
 
-    # Pagination
+    # ----------------------------
+    # PAGINATION
+    # ----------------------------
     per_page = 25
     paginator = Paginator(qs, per_page)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
-    # compact pagination list
+    # Compact pagination list
     total_pages = paginator.num_pages
     current = page_obj.number if page_obj else 1
     pagination_items = []
     last_was_ellipsis = False
+
     for p in range(1, total_pages + 1):
         show = (
             p <= 2 or
@@ -219,6 +263,7 @@ def show_all_records(request):
         'pagination_items': pagination_items,
         'request': request,
     }
+
     return render(request, 'DisplayRecord.html', context)
 
 @login_required
@@ -442,44 +487,33 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-def _get_manager_location(user):
-    if not user.is_authenticated:
-        return None
-
-    if user.is_superuser:
-        return None  # admin is not tied to a single location
-
-    # Example mapping by username – tweak as needed
-    mapping = {
-        "manager_dulari": "Dulari",
-        "manager_pnp": "Pours and Plates",
-        "manager_rachels": "Rachels",
-        "manager_r1": "Rachels1",
-        "manager_r2": "Rachels2",
-    }
-    return mapping.get(user.username)
-
 @login_required
 def add_record(request):
     user = request.user
     is_admin = user.is_superuser
-    manager_location = _get_manager_location(user)  # Store or None
 
-    # 🔒 Permission check
-    if not is_admin and not manager_location:
+    # Manager's enforced store (Store or None)
+    manager_store = None
+    if not is_admin and hasattr(user, "managerprofile"):
+        manager_store = user.managerprofile.store
+
+    # 🔒 Permission gate
+    if not is_admin and not manager_store:
         return HttpResponseForbidden("You are not allowed to add records.")
 
     if request.method == "POST":
-        form = RecordForm(request.POST)
+        form = RecordForm(request.POST, is_admin=is_admin)
 
         if form.is_valid():
             date = form.cleaned_data["date"]
 
-            # ✅ Location handling (SAFE)
+            # ----------------------------
+            # LOCATION ENFORCEMENT
+            # ----------------------------
             if is_admin:
-                location = form.cleaned_data["location"]  # Store object
+                location = form.cleaned_data["location"]   # Store chosen by admin
             else:
-                location = manager_location               # Enforced Store
+                location = manager_store                  # FORCE manager store
 
             vendors = request.POST.getlist("vendor[]")
             items = request.POST.getlist("item[]")
@@ -491,26 +525,27 @@ def add_record(request):
 
                 record = Record.objects.create(
                     date=date,
-                    location=location,   # ✅ Store object
+                    location=location,      # 🔒 Store enforced
                     vendor_id=v,
                     item_id=i,
                     quantity=q,
                     status="Pending",
                 )
 
-                # 🔔 Notify admins
-                admins = User.objects.filter(is_superuser=True)
-                for admin in admins:
+                # 🔔 Notify admins only
+                for admin in User.objects.filter(is_superuser=True):
                     Notification.objects.create(
                         recipient=admin,
                         message=f"New order added (#{record.pk})",
-                        location=record.location,  # Store
+                        location=record.location,
                         url=reverse("record_detail", kwargs={"pk": record.pk}),
                     )
 
             return redirect("show_all_records")
+        else:
+            print(form.errors)
 
-        # ❌ Form invalid → fall through to re-render with errors
+        # ❌ Invalid form → re-render with errors
 
     else:
         form = RecordForm()
@@ -521,14 +556,16 @@ def add_record(request):
         "form": form,
         "vendors": vendors,
         "is_admin": is_admin,
-        "manager_location": manager_location,
+        "manager_store": manager_store,
     }
+
     return render(request, "addRecord.html", context)
 
 @login_required
 def edit_order(request, pk):
     record = get_object_or_404(Record, pk=pk)
 
+    # 🔒 Only admins/staff can edit orders
     if not request.user.is_staff:
         return redirect("record_detail", pk=pk)
 
@@ -539,15 +576,16 @@ def edit_order(request, pk):
         record.item.save()
         record.save()
 
+        # 🔔 Notify managers of THIS STORE
         managers = User.objects.filter(
-            managerprofile__location=record.location
+            managerprofile__store=record.location
         )
 
         for manager in managers:
             Notification.objects.create(
                 recipient=manager,
                 message=f"Order #{record.pk} was updated",
-                location=record.location,
+                location=record.location,  # Store
                 url=reverse("record_detail", kwargs={"pk": record.pk}),
             )
 
@@ -636,12 +674,46 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def manage_stores(request):
     if request.method == "POST":
-        form = StoreForm(request.POST)
+        form = StoreWithManagerForm(request.POST)
         if form.is_valid():
-            form.save()
+            with transaction.atomic():
+
+                # ------------------------
+                # 1️⃣ Create Store
+                # ------------------------
+                store = Store.objects.create(
+                    name=form.cleaned_data["store_name"],
+                    is_active=form.cleaned_data.get("is_active", True)
+                )
+
+                # ------------------------
+                # 2️⃣ Get or Create User
+                # ------------------------
+                username = form.cleaned_data["manager_username"]
+                email = form.cleaned_data["manager_email"]
+                password = form.cleaned_data["manager_password"]
+
+                user, created = User.objects.get_or_create(
+                    username=username,
+                    defaults={"email": email}
+                )
+
+                # Set password only if user is newly created
+                if created:
+                    user.set_password(password)
+                    user.save()
+
+                # ------------------------
+                # 3️⃣ Get or Create ManagerProfile
+                # ------------------------
+                profile, _ = ManagerProfile.objects.get_or_create(user=user)
+                profile.store = store
+                profile.is_active = True
+                profile.save()
+
             return redirect("manage_stores")
     else:
-        form = StoreForm()
+        form = StoreWithManagerForm()
 
     stores = Store.objects.all().order_by("name")
 
@@ -649,3 +721,19 @@ def manage_stores(request):
         "form": form,
         "stores": stores
     })
+
+class StoreWithManagerForm(forms.Form):
+    # ---- Store fields ----
+    store_name = forms.CharField(max_length=100)
+    is_active = forms.BooleanField(required=False, initial=True)
+
+    # ---- Manager login fields ----
+    manager_username = forms.CharField(max_length=150)
+    manager_email = forms.EmailField()
+    manager_password = forms.CharField(widget=forms.PasswordInput)
+
+    def clean_manager_username(self):
+        username = self.cleaned_data["manager_username"]
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Username already exists")
+        return username
