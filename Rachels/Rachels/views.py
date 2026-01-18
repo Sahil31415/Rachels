@@ -661,15 +661,26 @@ def fetch_notifications(request):
     data = []
     unread_count = 0
 
-    for n in qs[:20]:  # limit for performance
+    for n in qs[:20]:
         if not n.is_read:
             unread_count += 1
+
+        # 🔥 ADMIN → location filtered list
+        if request.user.is_superuser:
+            target_url = (
+                reverse("show_all_records")
+                + f"?location={n.location}"
+                if n.location else reverse("show_all_records")
+            )
+        else:
+            # 👤 MANAGER → order-level page
+            target_url = n.url
 
         data.append({
             "id": n.id,
             "message": n.message,
             "location": n.location or "Unknown",
-            "url": n.url,  # 🔥 this enables order-level redirect
+            "url": target_url,
             "has_unread": not n.is_read,
             "latest_time": n.created_at.strftime("%d %b, %H:%M"),
         })
