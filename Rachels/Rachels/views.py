@@ -230,6 +230,11 @@ def show_all_records(request):
         today = date.today()
         qs = qs.filter(date__year=today.year, date__month=today.month)
 
+    
+    elif request.GET.get('month') == 'today':
+        today = date.today()
+        qs = qs.filter(date=today)
+
     # ----------------------------
     # PAGINATION
     # ----------------------------
