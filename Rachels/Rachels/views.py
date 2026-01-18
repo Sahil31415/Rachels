@@ -475,7 +475,7 @@ def add_vendor(request):
                     )
 
             messages.success(request, "Vendor and items saved successfully.")
-            return redirect("Home")
+            return redirect("add_vendor")
 
         messages.error(request, "Please provide vendor name and valid items.")
 
@@ -597,7 +597,7 @@ def add_record(request):
                         )
 
                 messages.success(request, "Record saved successfully.")
-                return redirect("show_all_records")
+                return redirect("add_record")
 
             except Exception as e:
                 messages.error(request, f"Save failed: {e}")
@@ -652,31 +652,32 @@ def edit_order(request, pk):
 def fetch_notifications(request):
     user = request.user
 
-    # Group notifications by location
-    grouped = (
-        user.notifications
-        .values("location")
-        .annotate(
-            latest_time=Max("created_at"),
-            unread_count=Count("id", filter=Q(is_read=False))
-        )
-        .order_by("-latest_time")
+    qs = (
+        Notification.objects
+        .filter(recipient=user)
+        .order_by("-created_at")
     )
 
     data = []
+    unread_count = 0
 
-    for g in grouped:
+    for n in qs[:20]:  # limit for performance
+        if not n.is_read:
+            unread_count += 1
+
         data.append({
-            "location": g["location"],
-            "has_unread": g["unread_count"] > 0,
-            "latest_time": g["latest_time"].strftime("%d %b, %H:%M"),
+            "id": n.id,
+            "message": n.message,
+            "location": n.location or "Unknown",
+            "url": n.url,  # 🔥 this enables order-level redirect
+            "has_unread": not n.is_read,
+            "latest_time": n.created_at.strftime("%d %b, %H:%M"),
         })
-
-    total_unread_locations = sum(1 for g in grouped if g["unread_count"] > 0)
 
     return JsonResponse({
         "notifications": data,
-        "unread_count": total_unread_locations
+        "unread_count": unread_count,
+        "is_admin": request.user.is_superuser
     })
 
 @login_required
@@ -747,12 +748,11 @@ def manage_stores(request):
                 # 2️⃣ Get or Create User
                 # ------------------------
                 username = form.cleaned_data["manager_username"]
-                email = form.cleaned_data["manager_email"]
                 password = form.cleaned_data["manager_password"]
 
                 user, created = User.objects.get_or_create(
                     username=username,
-                    defaults={"email": email}
+                    defaults={"email": ""}
                 )
 
                 # Set password only if user is newly created
@@ -786,7 +786,6 @@ class StoreWithManagerForm(forms.Form):
 
     # ---- Manager login fields ----
     manager_username = forms.CharField(max_length=150)
-    manager_email = forms.EmailField()
     manager_password = forms.CharField(widget=forms.PasswordInput)
 
     def clean_manager_username(self):
